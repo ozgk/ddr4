@@ -1,0 +1,3116 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Guia técnico, visual e detalhado de overclock de memória DDR4, com diagramas, método de ajuste, ICs, tensões e protocolo de estabilidade.">
+<meta name="theme-color" content="#111a31">
+<title>DDR4 OC Lab — Guia técnico completo</title>
+<style>
+:root {
+  --bg: #eef2f7;
+  --panel: #ffffff;
+  --panel-soft: #f7f9fc;
+  --text: #152033;
+  --muted: #607087;
+  --line: #d8e0eb;
+  --line-strong: #bdc9d8;
+  --accent: #5b5bd6;
+  --accent-2: #00a68c;
+  --accent-soft: #ececff;
+  --danger: #c63f52;
+  --warning: #b86a00;
+  --tip: #087f68;
+  --code: #111827;
+  --code-text: #e8edf5;
+  --hero-a: #111a31;
+  --hero-b: #28356d;
+  --shadow: 0 16px 48px rgba(22, 35, 57, .10);
+  --sidebar-w: 320px;
+  --radius: 18px;
+}
+[data-theme="dark"] {
+  --bg: #0d1119;
+  --panel: #151b26;
+  --panel-soft: #101621;
+  --text: #edf2fa;
+  --muted: #a8b3c4;
+  --line: #2a3444;
+  --line-strong: #3a4659;
+  --accent: #9b9bff;
+  --accent-2: #48d6bc;
+  --accent-soft: #28284b;
+  --danger: #ff7888;
+  --warning: #f5b35c;
+  --tip: #5ae0c6;
+  --code: #090c12;
+  --code-text: #ecf2fb;
+  --hero-a: #111728;
+  --hero-b: #252a58;
+  --shadow: 0 18px 54px rgba(0, 0, 0, .30);
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 86px; }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font: 16px/1.68 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  text-rendering: optimizeLegibility;
+}
+a { color: var(--accent); text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+button, input { font: inherit; }
+button { color: inherit; }
+::selection { background: var(--accent); color: white; }
+#reading-progress { position: fixed; z-index: 1000; inset: 0 auto auto 0; height: 3px; width: 0; background: linear-gradient(90deg,var(--accent),var(--accent-2)); }
+.sidebar {
+  position: fixed; inset: 0 auto 0 0; z-index: 50; width: var(--sidebar-w);
+  display: flex; flex-direction: column; background: var(--panel); border-right: 1px solid var(--line);
+}
+.brand { padding: 24px 22px 18px; border-bottom: 1px solid var(--line); }
+.brand-row { display: flex; gap: 12px; align-items: center; }
+.brand-icon { width: 43px; height: 43px; display: grid; place-items: center; border-radius: 13px; background: linear-gradient(135deg,var(--accent),var(--accent-2)); color: #fff; font-weight: 900; box-shadow: 0 8px 24px rgba(91,91,214,.28); }
+.brand strong { display: block; font-size: 15px; letter-spacing: .01em; }
+.brand small { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }
+.search-wrap { padding: 14px 18px 10px; }
+.search-box { position: relative; }
+.search-box input { width: 100%; border: 1px solid var(--line); background: var(--panel-soft); color: var(--text); border-radius: 12px; padding: 11px 38px 11px 13px; outline: none; }
+.search-box input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb,var(--accent) 18%,transparent); }
+.search-icon { position: absolute; right: 13px; top: 10px; color: var(--muted); pointer-events: none; }
+.search-status { min-height: 21px; padding: 0 20px 5px; color: var(--muted); font-size: 12px; }
+.toc-wrap { min-height: 0; overflow: auto; padding: 2px 12px 22px; scrollbar-width: thin; }
+.toc-tree > ul { padding: 0; margin: 0; list-style: none; }
+.toc-tree ul { list-style: none; padding-left: 12px; }
+.toc-tree li { margin: 2px 0; }
+.toc-tree a { display: block; padding: 7px 9px; border-radius: 9px; color: var(--muted); text-decoration: none; font-size: 12.5px; line-height: 1.35; border-left: 2px solid transparent; }
+.toc-tree > ul > li > a { font-weight: 670; color: var(--text); }
+.toc-tree a:hover { background: var(--panel-soft); color: var(--accent); }
+.toc-tree a.active { color: var(--accent); background: var(--accent-soft); border-left-color: var(--accent); }
+.sidebar-footer { margin-top: auto; border-top: 1px solid var(--line); padding: 12px 18px 15px; color: var(--muted); font-size: 11px; }
+.app { min-height: 100vh; margin-left: var(--sidebar-w); }
+.topbar { position: sticky; top: 0; z-index: 40; height: 66px; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 0 clamp(18px,4vw,52px); background: color-mix(in srgb,var(--bg) 88%,transparent); border-bottom: 1px solid color-mix(in srgb,var(--line) 75%,transparent); backdrop-filter: blur(16px); }
+.breadcrumb { min-width: 0; color: var(--muted); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.breadcrumb strong { color: var(--text); }
+.actions { display: flex; gap: 8px; }
+.icon-btn, .action-btn { border: 1px solid var(--line); background: var(--panel); border-radius: 11px; min-height: 40px; cursor: pointer; box-shadow: 0 3px 12px rgba(15,23,42,.04); }
+.icon-btn { width: 40px; display: grid; place-items: center; }
+.action-btn { padding: 8px 13px; font-weight: 700; font-size: 13px; }
+.icon-btn:hover, .action-btn:hover { border-color: var(--accent); color: var(--accent); }
+.menu-btn { display:none; }
+.main { width: min(1220px, calc(100% - 40px)); margin: 28px auto 80px; }
+.hero { position: relative; overflow: hidden; border-radius: 28px; padding: clamp(28px,5vw,64px); color: #f7f9ff; background: radial-gradient(circle at 80% 15%,rgba(74,222,200,.25),transparent 28%), radial-gradient(circle at 15% 0%,rgba(155,155,255,.28),transparent 32%), linear-gradient(145deg,var(--hero-a),var(--hero-b)); box-shadow: var(--shadow); }
+.hero::after { content:""; position:absolute; inset:0; pointer-events:none; opacity:.08; background-image: linear-gradient(rgba(255,255,255,.5) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.5) 1px,transparent 1px); background-size: 28px 28px; mask-image: linear-gradient(to bottom,black,transparent); }
+.hero-grid { position: relative; z-index:1; display:grid; grid-template-columns:minmax(0,1.3fr) minmax(290px,.7fr); gap:42px; align-items:center; }
+.eyebrow { display:inline-flex; gap:8px; align-items:center; padding:7px 10px; border:1px solid rgba(255,255,255,.22); border-radius:999px; background:rgba(255,255,255,.08); font-size:12px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
+.hero h1 { margin:18px 0 14px; max-width:850px; font-size:clamp(35px,5.2vw,68px); line-height:1.02; letter-spacing:-.045em; }
+.hero p { max-width:780px; margin:0; color:#d8e1f2; font-size:clamp(16px,1.65vw,20px); }
+.hero-cta { display:flex; flex-wrap:wrap; gap:10px; margin-top:25px; }
+.primary-cta, .secondary-cta { display:inline-flex; align-items:center; justify-content:center; gap:8px; border-radius:12px; padding:11px 15px; font-weight:800; text-decoration:none; border:1px solid rgba(255,255,255,.22); cursor:pointer; }
+.primary-cta { background:#fff; color:#17213e; }
+.secondary-cta { color:#fff; background:rgba(255,255,255,.07); }
+.hero-stats { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin-top:32px; }
+.stat { padding:14px 15px; border:1px solid rgba(255,255,255,.15); border-radius:14px; background:rgba(255,255,255,.065); backdrop-filter:blur(10px); }
+.stat b { display:block; font-size:20px; }
+.stat span { color:#bdc9df; font-size:11px; text-transform:uppercase; letter-spacing:.06em; }
+.calc-card { position:relative; z-index:2; padding:22px; border:1px solid rgba(255,255,255,.18); border-radius:20px; background:rgba(7,12,27,.45); backdrop-filter:blur(18px); box-shadow:0 22px 55px rgba(0,0,0,.22); }
+.calc-card h2 { margin:0 0 4px; font-size:18px; }
+.calc-card > p { font-size:12px; margin-bottom:17px; color:#bfcbe1; }
+.calc-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.calc-field label { display:block; color:#cbd5e8; font-size:11px; margin-bottom:5px; }
+.calc-field input { width:100%; border:1px solid rgba(255,255,255,.18); border-radius:10px; background:rgba(255,255,255,.08); color:#fff; padding:10px; outline:none; }
+.calc-results { display:grid; grid-template-columns:1fr 1fr; gap:9px; margin-top:14px; }
+.calc-result { border-radius:11px; padding:11px; background:rgba(255,255,255,.08); }
+.calc-result small { display:block; color:#bac7dd; font-size:10px; }
+.calc-result strong { font-size:17px; }
+.feature-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin:18px 0 26px; }
+.feature { background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:20px; box-shadow:0 8px 25px rgba(22,35,57,.05); }
+.feature-icon { width:38px; height:38px; display:grid; place-items:center; border-radius:11px; background:var(--accent-soft); color:var(--accent); font-weight:900; }
+.feature h3 { margin:13px 0 5px; font-size:16px; }
+.feature p { margin:0; color:var(--muted); font-size:13px; }
+.quick-nav { display:flex; gap:8px; flex-wrap:wrap; margin:0 0 24px; }
+.quick-nav a { padding:8px 11px; border:1px solid var(--line); background:var(--panel); border-radius:999px; color:var(--text); font-size:12px; font-weight:700; text-decoration:none; }
+.quick-nav a:hover { border-color:var(--accent); color:var(--accent); }
+.guide-article { display:block; }
+.chapter { scroll-margin-top:88px; background:var(--panel); border:1px solid var(--line); border-radius:22px; margin:0 0 18px; padding:clamp(22px,4.2vw,50px); box-shadow:0 10px 34px rgba(22,35,57,.055); }
+.chapter.search-hidden { display:none; }
+.chapter-kicker { display:block; color:var(--accent); font-size:11px; font-weight:850; letter-spacing:.12em; text-transform:uppercase; margin-bottom:4px; }
+.chapter h1 { scroll-margin-top:88px; display:flex; gap:10px; align-items:baseline; margin:0 0 22px; color:var(--text); font-size:clamp(27px,3.4vw,43px); line-height:1.12; letter-spacing:-.035em; }
+.heading-anchor { opacity:0; color:var(--muted); text-decoration:none; font-size:.55em; }
+.chapter h1:hover .heading-anchor { opacity:1; }
+.chapter h2 { margin:34px 0 14px; padding-bottom:8px; border-bottom:1px solid var(--line); font-size:clamp(20px,2.25vw,28px); line-height:1.25; }
+.chapter h3 { margin:27px 0 9px; font-size:19px; }
+.chapter h4 { margin:22px 0 8px; font-size:16px; }
+.chapter p { margin:10px 0; }
+.chapter ul, .chapter ol { padding-left:22px; }
+.chapter li { margin:5px 0; }
+.chapter strong { font-weight:760; }
+.chapter img, .chapter svg { max-width:100%; }
+.chapter code:not(pre code) { padding:.15em .38em; border:1px solid var(--line); border-radius:6px; background:var(--panel-soft); color:var(--accent); font: .9em ui-monospace,SFMono-Regular,Consolas,monospace; }
+pre { position:relative; margin:16px 0; padding:18px 20px; overflow:auto; border:1px solid #26334a; border-radius:14px; background:var(--code); color:var(--code-text); box-shadow:inset 0 1px rgba(255,255,255,.04); }
+pre code { font:13px/1.65 ui-monospace,SFMono-Regular,Consolas,monospace; }
+.table-scroll { width:100%; overflow-x:auto; margin:18px 0 24px; border:1px solid var(--line); border-radius:14px; }
+table { width:100%; min-width:650px; border-collapse:collapse; font-size:13px; background:var(--panel); }
+th,td { padding:11px 13px; text-align:left; vertical-align:top; border-bottom:1px solid var(--line); border-right:1px solid var(--line); }
+th:last-child,td:last-child { border-right:0; }
+tr:last-child td { border-bottom:0; }
+th { position:sticky; top:0; color:var(--text); background:var(--panel-soft); font-weight:800; }
+tbody tr:nth-child(even) { background:color-mix(in srgb,var(--panel-soft) 55%,transparent); }
+tbody tr:hover { background:var(--accent-soft); }
+.callout { position:relative; margin:18px 0; padding:36px 18px 16px; border:1px solid var(--line); border-left:5px solid var(--accent); border-radius:12px; background:var(--panel-soft); }
+.callout p:first-of-type { margin-top:0; }
+.callout-label { position:absolute; top:10px; left:14px; font-size:10px; font-weight:900; letter-spacing:.09em; text-transform:uppercase; }
+.callout.danger { border-left-color:var(--danger); background:color-mix(in srgb,var(--danger) 8%,var(--panel)); }
+.callout.danger .callout-label { color:var(--danger); }
+.callout.warning { border-left-color:var(--warning); background:color-mix(in srgb,var(--warning) 9%,var(--panel)); }
+.callout.warning .callout-label { color:var(--warning); }
+.callout.tip { border-left-color:var(--tip); background:color-mix(in srgb,var(--tip) 8%,var(--panel)); }
+.callout.tip .callout-label { color:var(--tip); }
+.callout.note .callout-label { color:var(--accent); }
+figure.diagram { margin:24px 0; padding:18px; border:1px solid var(--line); border-radius:18px; background:linear-gradient(180deg,var(--panel-soft),var(--panel)); overflow:auto; text-align:center; }
+figure.diagram svg { display:block; width:100%; max-height:520px; margin:auto; }
+figure.diagram figcaption { margin-top:12px; color:var(--muted); font-size:12px; }
+figure.diagram .node path, figure.diagram .node polygon, figure.diagram .node ellipse { fill:var(--panel) !important; stroke:var(--accent) !important; stroke-width:1.35px; }
+figure.diagram .node text, figure.diagram .edge text { fill:var(--text) !important; font-family:ui-sans-serif,system-ui,sans-serif !important; }
+figure.diagram .edge path { stroke:var(--muted) !important; }
+figure.diagram .edge polygon { fill:var(--muted) !important; stroke:var(--muted) !important; }
+figure.diagram g.graph > polygon:first-child { fill:transparent !important; stroke:transparent !important; }
+.task-list { padding-left:0 !important; list-style:none; }
+.task-list-item { padding:9px 10px; border-bottom:1px solid var(--line); }
+.task-list-item input { accent-color:var(--accent); transform:scale(1.12); margin-right:8px; }
+.footer { margin-top:28px; padding:28px; border:1px solid var(--line); border-radius:18px; background:var(--panel); color:var(--muted); text-align:center; font-size:12px; }
+#back-top { position:fixed; right:20px; bottom:20px; z-index:60; width:46px; height:46px; display:grid; place-items:center; border:1px solid var(--line); border-radius:14px; background:var(--panel); box-shadow:var(--shadow); cursor:pointer; opacity:0; pointer-events:none; transform:translateY(8px); transition:.2s; }
+#back-top.visible { opacity:1; pointer-events:auto; transform:none; }
+mark.search-hit { background:#ffe083; color:#342600; border-radius:3px; padding:0 2px; }
+.diagram { cursor: zoom-in; }
+figure.diagram::before { content:'Clique para ampliar'; display:block; width:max-content; margin:0 0 10px auto; color:var(--muted); font-size:10px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; }
+.diagram-modal { position:fixed; inset:0; z-index:2000; display:none; align-items:center; justify-content:center; padding:24px; background:rgba(3,7,15,.82); backdrop-filter:blur(10px); }
+.diagram-modal.open { display:flex; }
+.diagram-dialog { width:min(1500px,96vw); max-height:94vh; overflow:auto; border:1px solid var(--line-strong); border-radius:20px; background:var(--panel); box-shadow:0 30px 100px rgba(0,0,0,.55); }
+.diagram-modal-head { position:sticky; top:0; z-index:2; display:flex; align-items:center; justify-content:space-between; gap:15px; padding:14px 17px; border-bottom:1px solid var(--line); background:color-mix(in srgb,var(--panel) 92%,transparent); backdrop-filter:blur(10px); }
+.diagram-modal-title { font-weight:800; }
+.diagram-close { width:40px; height:40px; border:1px solid var(--line); border-radius:11px; background:var(--panel-soft); cursor:pointer; }
+.diagram-canvas { min-width:900px; padding:24px; }
+.diagram-canvas svg { width:100%; min-height:360px; max-height:78vh; }
+@media (max-width:700px) { .diagram-modal { padding:8px; } .diagram-dialog { width:100%; max-height:98vh; border-radius:14px; } .diagram-canvas { min-width:760px; padding:16px; } }
+.mobile-overlay { display:none; }
+@media (max-width: 1080px) {
+  .hero-grid { grid-template-columns:1fr; }
+  .calc-card { max-width:640px; }
+  .hero-stats { grid-template-columns:repeat(2,1fr); }
+}
+@media (max-width: 900px) {
+  :root { --sidebar-w: 300px; }
+  .sidebar { transform:translateX(-102%); transition:transform .25s ease; box-shadow:30px 0 70px rgba(0,0,0,.22); }
+  body.menu-open .sidebar { transform:none; }
+  .app { margin-left:0; }
+  .menu-btn { display:grid; }
+  .mobile-overlay { display:block; position:fixed; inset:0; z-index:45; background:rgba(4,8,16,.48); opacity:0; pointer-events:none; transition:.2s; }
+  body.menu-open .mobile-overlay { opacity:1; pointer-events:auto; }
+  .main { width:min(100% - 24px,920px); margin-top:14px; }
+  .topbar { padding:0 14px; }
+}
+@media (max-width: 700px) {
+  .hero { padding:27px 20px; border-radius:20px; }
+  .hero h1 { font-size:38px; }
+  .hero-stats { grid-template-columns:1fr 1fr; }
+  .feature-grid { grid-template-columns:1fr; }
+  .chapter { padding:24px 18px; border-radius:17px; }
+  .chapter h1 { font-size:29px; }
+  .calc-grid,.calc-results { grid-template-columns:1fr 1fr; }
+  .action-btn span { display:none; }
+}
+@media (max-width: 460px) {
+  .hero h1 { font-size:33px; }
+  .calc-grid,.calc-results { grid-template-columns:1fr; }
+  .breadcrumb { display:none; }
+}
+@media print {
+  :root { --bg:#fff; --panel:#fff; --text:#111; --muted:#444; --line:#bbb; }
+  .sidebar,.topbar,.feature-grid,.quick-nav,#back-top,#reading-progress,.hero-cta,.mobile-overlay { display:none !important; }
+  .app { margin:0; }
+  .main { width:100%; margin:0; }
+  .hero { color:#111; background:#fff; box-shadow:none; border:1px solid #aaa; padding:20px; }
+  .hero p,.hero .stat span,.calc-card>p,.calc-field label,.calc-result small { color:#333; }
+  .hero-grid { display:block; }
+  .calc-card { display:none; }
+  .hero-stats { grid-template-columns:repeat(4,1fr); }
+  .stat { border:1px solid #aaa; background:#fff; }
+  .chapter { box-shadow:none; border:0; border-radius:0; padding:16px 0; break-inside:auto; }
+  .chapter h1,.chapter h2,.chapter h3 { break-after:avoid; }
+  figure.diagram,pre,.table-scroll,.callout { break-inside:avoid; }
+  .table-scroll { overflow:visible; }
+  table { min-width:0; font-size:9pt; }
+  a { color:#111; text-decoration:none; }
+  a[href^="http"]::after { content:" (" attr(href) ")"; font-size:8pt; overflow-wrap:anywhere; }
+}
+</style>
+</head>
+<body>
+<div id="reading-progress" aria-hidden="true"></div>
+<div class="mobile-overlay" aria-hidden="true"></div>
+<aside class="sidebar" aria-label="Navegação do guia">
+  <div class="brand">
+    <div class="brand-row"><div class="brand-icon">D4</div><div><strong>DDR4 OC Lab</strong><small>Guia técnico revisado</small></div></div>
+  </div>
+  <div class="search-wrap"><div class="search-box"><input id="guide-search" type="search" placeholder="Buscar no guia…" aria-label="Buscar no guia"><span class="search-icon">⌕</span></div></div>
+  <div id="search-status" class="search-status">Pesquise por timing, IC ou plataforma</div>
+  <div class="toc-wrap"><nav class="toc-tree" id="TOC">
+<ul>
+<li><a href="#aviso-essencial" id="toc-aviso-essencial">Aviso
+essencial</a></li>
+<li><a href="#como-usar-este-guia" id="toc-como-usar-este-guia">1. Como
+usar este guia</a>
+<ul>
+<li><a href="#três-objetivos-possíveis" id="toc-três-objetivos-possíveis">Três objetivos possíveis</a></li>
+</ul></li>
+<li><a href="#modelo-mental-da-memória-ddr4" id="toc-modelo-mental-da-memória-ddr4">2. Modelo mental da memória
+DDR4</a></li>
+<li><a href="#frequência-mts-e-latência-real" id="toc-frequência-mts-e-latência-real">3. Frequência, MT/s e latência
+real</a>
+<ul>
+<li><a href="#mhz-não-é-a-mesma-coisa-que-mts" id="toc-mhz-não-é-a-mesma-coisa-que-mts">3.1 MHz não é a mesma coisa que
+MT/s</a></li>
+<li><a href="#duração-de-um-ciclo" id="toc-duração-de-um-ciclo">3.2
+Duração de um ciclo</a></li>
+<li><a href="#converter-um-timing-em-nanossegundos" id="toc-converter-um-timing-em-nanossegundos">3.3 Converter um timing em
+nanossegundos</a></li>
+<li><a href="#largura-de-banda-teórica" id="toc-largura-de-banda-teórica">3.4 Largura de banda teórica</a></li>
+</ul></li>
+<li><a href="#canais-dimms-ranks-chips-x8-e-x16" id="toc-canais-dimms-ranks-chips-x8-e-x16">4. Canais, DIMMs, ranks,
+chips x8 e x16</a>
+<ul>
+<li><a href="#canal-não-é-dimm" id="toc-canal-não-é-dimm">4.1 Canal não
+é DIMM</a></li>
+<li><a href="#single-rank-e-dual-rank" id="toc-single-rank-e-dual-rank">4.2 Single rank e dual rank</a></li>
+<li><a href="#x8-e-x16-descrevem-largura-do-chip" id="toc-x8-e-x16-descrevem-largura-do-chip">4.3 x8 e x16 descrevem
+largura do chip</a></li>
+<li><a href="#instale-nos-slots-corretos" id="toc-instale-nos-slots-corretos">4.4 Instale nos slots
+corretos</a></li>
+</ul></li>
+<li><a href="#como-uma-operação-de-memória-acontece" id="toc-como-uma-operação-de-memória-acontece">5. Como uma operação de
+memória acontece</a>
+<ul>
+<li><a href="#significado-conceitual" id="toc-significado-conceitual">Significado conceitual</a></li>
+</ul></li>
+<li><a href="#timings-primários-secundários-e-terciários" id="toc-timings-primários-secundários-e-terciários">6. Timings
+primários, secundários e terciários</a>
+<ul>
+<li><a href="#primários" id="toc-primários">6.1 Primários</a></li>
+<li><a href="#secundários" id="toc-secundários">6.2 Secundários</a></li>
+<li><a href="#terciários-e-turnarounds" id="toc-terciários-e-turnarounds">6.3 Terciários e turnarounds</a></li>
+</ul></li>
+<li><a href="#refresh-trfc-trefi-e-temperatura" id="toc-refresh-trfc-trefi-e-temperatura">7. Refresh, tRFC, tREFI e
+temperatura</a>
+<ul>
+<li><a href="#trefi" id="toc-trefi">tREFI</a></li>
+<li><a href="#trfc" id="toc-trfc">tRFC</a></li>
+<li><a href="#temperatura" id="toc-temperatura">Temperatura</a></li>
+</ul></li>
+<li><a href="#ics-os-chips-reais-da-memória" id="toc-ics-os-chips-reais-da-memória">8. ICs: os chips reais da
+memória</a>
+<ul>
+<li><a href="#o-que-é-um-ic" id="toc-o-que-é-um-ic">8.1 O que é um
+IC</a></li>
+<li><a href="#tabela-de-comportamento-típico" id="toc-tabela-de-comportamento-típico">8.2 Tabela de comportamento
+típico</a></li>
+<li><a href="#samsung-8-gb-b-die" id="toc-samsung-8-gb-b-die">8.3
+Samsung 8 Gb B-die</a></li>
+<li><a href="#hynix-cjr-e-djr" id="toc-hynix-cjr-e-djr">8.4 Hynix CJR e
+DJR</a></li>
+<li><a href="#micron-rev.-e" id="toc-micron-rev.-e">8.5 Micron
+Rev. E</a></li>
+<li><a href="#micron-16-gb-rev.-b" id="toc-micron-16-gb-rev.-b">8.6
+Micron 16 Gb Rev. B</a></li>
+<li><a href="#samsung-c-die" id="toc-samsung-c-die">8.7 Samsung
+C-die</a></li>
+<li><a href="#não-use-um-ranking-absoluto" id="toc-não-use-um-ranking-absoluto">8.8 Não use um ranking
+absoluto</a></li>
+</ul></li>
+<li><a href="#como-identificar-o-ic-sem-adivinhar" id="toc-como-identificar-o-ic-sem-adivinhar">9. Como identificar o IC
+sem adivinhar</a>
+<ul>
+<li><a href="#níveis-de-confiança" id="toc-níveis-de-confiança">Níveis
+de confiança</a></li>
+<li><a href="#sobre-thaiphoon-burner" id="toc-sobre-thaiphoon-burner">Sobre Thaiphoon Burner</a></li>
+<li><a href="#códigos-corsair-g.skill-e-kingston" id="toc-códigos-corsair-g.skill-e-kingston">Códigos Corsair, G.Skill e
+Kingston</a></li>
+</ul></li>
+<li><a href="#placa-mãe-topologia-e-treinamento" id="toc-placa-mãe-topologia-e-treinamento">10. Placa-mãe, topologia e
+treinamento</a>
+<ul>
+<li><a href="#daisy-chain" id="toc-daisy-chain">10.1 Daisy
+chain</a></li>
+<li><a href="#t-topology" id="toc-t-topology">10.2 T-topology</a></li>
+<li><a href="#não-existe-um-corte-mágico-em-4000-mts" id="toc-não-existe-um-corte-mágico-em-4000-mts">10.3 Não existe um corte
+mágico em 4000 MT/s</a></li>
+<li><a href="#treinamento-de-memória" id="toc-treinamento-de-memória">10.4 Treinamento de memória</a></li>
+</ul></li>
+<li><a href="#controlador-de-memória-e-plataformas" id="toc-controlador-de-memória-e-plataformas">11. Controlador de memória
+e plataformas</a></li>
+<li><a href="#intel-ddr4-antes-do-gear-mode" id="toc-intel-ddr4-antes-do-gear-mode">11.1 Intel DDR4 antes do Gear
+Mode</a></li>
+<li><a href="#intel-gear-1-e-gear-2" id="toc-intel-gear-1-e-gear-2">11.2
+Intel Gear 1 e Gear 2</a></li>
+<li><a href="#amd-zen-e-zen" id="toc-amd-zen-e-zen">11.3 AMD Zen e
+Zen+</a></li>
+<li><a href="#amd-zen-2-e-zen-3-mclk-uclk-e-fclk" id="toc-amd-zen-2-e-zen-3-mclk-uclk-e-fclk">11.4 AMD Zen 2 e Zen 3:
+MCLK, UCLK e FCLK</a></li>
+<li><a href="#ferramentas-e-preparação" id="toc-ferramentas-e-preparação">12. Ferramentas e preparação</a>
+<ul>
+<li><a href="#antes-de-alterar-o-bios" id="toc-antes-de-alterar-o-bios">12.1 Antes de alterar o BIOS</a></li>
+<li><a href="#ferramentas-de-leitura" id="toc-ferramentas-de-leitura">12.2 Ferramentas de leitura</a></li>
+<li><a href="#testes" id="toc-testes">12.3 Testes</a></li>
+<li><a href="#ferramentas-que-não-devem-ser-a-única-validação" id="toc-ferramentas-que-não-devem-ser-a-única-validação">12.4
+Ferramentas que não devem ser a única validação</a></li>
+</ul></li>
+<li><a href="#método-completo-de-overclock" id="toc-método-completo-de-overclock">13. Método completo de
+overclock</a>
+<ul>
+<li><a href="#ordem-recomendada" id="toc-ordem-recomendada">Ordem
+recomendada</a></li>
+</ul></li>
+<li><a href="#como-encontrar-a-frequência-base" id="toc-como-encontrar-a-frequência-base">14. Como encontrar a
+frequência-base</a>
+<ul>
+<li><a href="#configuração-inicial" id="toc-configuração-inicial">14.1
+Configuração inicial</a></li>
+<li><a href="#passos" id="toc-passos">14.2 Passos</a></li>
+<li><a href="#teto-de-boot-não-é-teto-estável" id="toc-teto-de-boot-não-é-teto-estável">14.3 Teto de boot não é teto
+estável</a></li>
+</ul></li>
+<li><a href="#como-apertar-timings-primários" id="toc-como-apertar-timings-primários">15. Como apertar timings
+primários</a>
+<ul>
+<li><a href="#tcl" id="toc-tcl">15.1 tCL</a></li>
+<li><a href="#trcdrd-e-trcdwr" id="toc-trcdrd-e-trcdwr">15.2 tRCDRD e
+tRCDWR</a></li>
+<li><a href="#trp" id="toc-trp">15.3 tRP</a></li>
+<li><a href="#tras" id="toc-tras">15.4 tRAS</a></li>
+<li><a href="#command-rate-e-gear-down-mode" id="toc-command-rate-e-gear-down-mode">15.5 Command Rate e Gear Down
+Mode</a></li>
+</ul></li>
+<li><a href="#como-apertar-timings-secundários" id="toc-como-apertar-timings-secundários">16. Como apertar timings
+secundários</a>
+<ul>
+<li><a href="#trfc-1" id="toc-trfc-1">16.1 tRFC</a></li>
+<li><a href="#trrds-trrdl-e-tfaw" id="toc-trrds-trrdl-e-tfaw">16.2
+tRRDS, tRRDL e tFAW</a></li>
+<li><a href="#twr-e-trtp" id="toc-twr-e-trtp">16.3 tWR e tRTP</a></li>
+<li><a href="#twtrs-e-twtrl" id="toc-twtrs-e-twtrl">16.4 tWTRS e
+tWTRL</a></li>
+<li><a href="#tcwl" id="toc-tcwl">16.5 tCWL</a></li>
+</ul></li>
+<li><a href="#como-apertar-timings-terciários" id="toc-como-apertar-timings-terciários">17. Como apertar timings
+terciários</a>
+<ul>
+<li><a href="#amd-scl" id="toc-amd-scl">17.1 AMD SCL</a></li>
+<li><a href="#intel-rtl-e-iol" id="toc-intel-rtl-e-iol">17.2 Intel RTL e
+IOL</a></li>
+<li><a href="#turnarounds" id="toc-turnarounds">17.3
+Turnarounds</a></li>
+</ul></li>
+<li><a href="#tensões-método-correto-e-limites" id="toc-tensões-método-correto-e-limites">18. Tensões: método correto e
+limites</a>
+<ul>
+<li><a href="#nominal-perfil-e-máximo-absoluto-são-conceitos-diferentes" id="toc-nominal-perfil-e-máximo-absoluto-são-conceitos-diferentes">18.1
+Nominal, perfil e máximo absoluto são conceitos diferentes</a></li>
+<li><a href="#não-existe-uma-tabela-diária-universal-por-ic" id="toc-não-existe-uma-tabela-diária-universal-por-ic">18.2 Não existe
+uma tabela diária universal por IC</a></li>
+<li><a href="#método-de-ajuste" id="toc-método-de-ajuste">18.3 Método de
+ajuste</a></li>
+<li><a href="#scaling-positivo-nulo-e-negativo" id="toc-scaling-positivo-nulo-e-negativo">18.4 Scaling positivo, nulo e
+negativo</a></li>
+<li><a href="#tensões-do-imc" id="toc-tensões-do-imc">18.5 Tensões do
+IMC</a></li>
+</ul></li>
+<li><a href="#protocolo-de-estabilidade" id="toc-protocolo-de-estabilidade">19. Protocolo de estabilidade</a>
+<ul>
+<li><a href="#estágio-0-stock" id="toc-estágio-0-stock">19.1 Estágio 0 —
+stock</a></li>
+<li><a href="#estágio-1-triagem-rápida" id="toc-estágio-1-triagem-rápida">19.2 Estágio 1 — triagem
+rápida</a></li>
+<li><a href="#estágio-2-validação-intermediária" id="toc-estágio-2-validação-intermediária">19.3 Estágio 2 — validação
+intermediária</a></li>
+<li><a href="#estágio-3-validação-final" id="toc-estágio-3-validação-final">19.4 Estágio 3 — validação
+final</a></li>
+<li><a href="#teste-de-corrupção-prático" id="toc-teste-de-corrupção-prático">19.5 Teste de corrupção
+prático</a></li>
+<li><a href="#zero-erros-significa-zero-erros" id="toc-zero-erros-significa-zero-erros">19.6 Zero erros significa zero
+erros</a></li>
+</ul></li>
+<li><a href="#fluxo-de-diagnóstico-de-erros" id="toc-fluxo-de-diagnóstico-de-erros">20. Fluxo de diagnóstico de
+erros</a>
+<ul>
+<li><a href="#não-inicia-o-post" id="toc-não-inicia-o-post">20.1 Não
+inicia o POST</a></li>
+<li><a href="#inicia-mas-erra-imediatamente" id="toc-inicia-mas-erra-imediatamente">20.2 Inicia, mas erra
+imediatamente</a></li>
+<li><a href="#erra-somente-depois-de-muito-tempo" id="toc-erra-somente-depois-de-muito-tempo">20.3 Erra somente depois de
+muito tempo</a></li>
+<li><a href="#whea-em-amd" id="toc-whea-em-amd">20.4 WHEA em
+AMD</a></li>
+<li><a href="#bsod-não-identifica-sozinho-o-timing-culpado" id="toc-bsod-não-identifica-sozinho-o-timing-culpado">20.5 BSOD não
+identifica sozinho o timing culpado</a></li>
+</ul></li>
+<li><a href="#benchmark-correto" id="toc-benchmark-correto">21.
+Benchmark correto</a>
+<ul>
+<li><a href="#controle-de-variáveis" id="toc-controle-de-variáveis">21.1
+Controle de variáveis</a></li>
+<li><a href="#repetição" id="toc-repetição">21.2 Repetição</a></li>
+<li><a href="#métricas-úteis" id="toc-métricas-úteis">21.3 Métricas
+úteis</a></li>
+<li><a href="#não-invente-tabela-de-fps" id="toc-não-invente-tabela-de-fps">21.4 Não invente tabela de
+FPS</a></li>
+</ul></li>
+<li><a href="#exemplos-educativos" id="toc-exemplos-educativos">22.
+Exemplos educativos</a>
+<ul>
+<li><a href="#ic-desconhecido-perfil-conservador" id="toc-ic-desconhecido-perfil-conservador">22.1 IC desconhecido, perfil
+conservador</a></li>
+<li><a href="#ryzen-5000-alvo-sincronizado" id="toc-ryzen-5000-alvo-sincronizado">22.2 Ryzen 5000, alvo
+sincronizado</a></li>
+<li><a href="#samsung-b-die-confirmado" id="toc-samsung-b-die-confirmado">22.3 Samsung B-die confirmado</a></li>
+<li><a href="#micron-rev.-e-confirmado" id="toc-micron-rev.-e-confirmado">22.4 Micron Rev. E confirmado</a></li>
+</ul></li>
+<li><a href="#mitos-e-erros-comuns" id="toc-mitos-e-erros-comuns">23.
+Mitos e erros comuns</a>
+<ul>
+<li><a href="#menor-cl-sempre-é-melhor" id="toc-menor-cl-sempre-é-melhor">“Menor CL sempre é melhor”</a></li>
+<li><a href="#v-é-seguro-porque-é-o-máximo-absoluto" id="toc-v-é-seguro-porque-é-o-máximo-absoluto">“1,50 V é seguro porque é
+o máximo absoluto”</a></li>
+<li><a href="#acima-de-60-c-toda-ddr4-estraga" id="toc-acima-de-60-c-toda-ddr4-estraga">“Acima de 60 °C toda DDR4
+estraga”</a></li>
+<li><a href="#tras-sempre-é-cl-trcd-2" id="toc-tras-sempre-é-cl-trcd-2">“tRAS sempre é CL + tRCD + 2”</a></li>
+<li><a href="#tcwl-precisa-ser-par-porque-a-frequência-é-par" id="toc-tcwl-precisa-ser-par-porque-a-frequência-é-par">“tCWL precisa
+ser par porque a frequência é par”</a></li>
+<li><a href="#fclk-é-metade-do-mclk" id="toc-fclk-é-metade-do-mclk">“FCLK é metade do MCLK”</a></li>
+<li><a href="#quatro-dimms-são-sempre-piores" id="toc-quatro-dimms-são-sempre-piores">“Quatro DIMMs são sempre
+piores”</a></li>
+<li><a href="#passou-30-minutos-está-estável" id="toc-passou-30-minutos-está-estável">“Passou 30 minutos, está
+estável”</a></li>
+<li><a href="#mais-tensão-sempre-resolve" id="toc-mais-tensão-sempre-resolve">“Mais tensão sempre
+resolve”</a></li>
+<li><a href="#thaiphoon-confirmou-então-é-certeza" id="toc-thaiphoon-confirmou-então-é-certeza">“Thaiphoon confirmou, então
+é certeza”</a></li>
+</ul></li>
+<li><a href="#ficha-de-registro" id="toc-ficha-de-registro">24. Ficha de
+registro</a>
+<ul>
+<li><a href="#log-de-alterações" id="toc-log-de-alterações">Log de
+alterações</a></li>
+</ul></li>
+<li><a href="#checklist-final" id="toc-checklist-final">25. Checklist
+final</a></li>
+<li><a href="#fontes-e-nível-de-evidência" id="toc-fontes-e-nível-de-evidência">26. Fontes e nível de evidência</a>
+<ul>
+<li><a href="#fonte-comunitária-principal" id="toc-fonte-comunitária-principal">Fonte comunitária
+principal</a></li>
+<li><a href="#fontes-oficiais" id="toc-fontes-oficiais">Fontes
+oficiais</a></li>
+<li><a href="#hierarquia-usada-neste-documento" id="toc-hierarquia-usada-neste-documento">Hierarquia usada neste
+documento</a></li>
+</ul></li>
+<li><a href="#conclusão" id="toc-conclusão">Conclusão</a></li>
+</ul>
+</nav></div>
+  <div class="sidebar-footer">Conteúdo offline · diagramas SVG · sem dependências externas</div>
+</aside>
+<div class="app">
+<header class="topbar">
+  <div style="display:flex;align-items:center;gap:10px;min-width:0"><button id="menu-toggle" class="icon-btn menu-btn" aria-label="Abrir menu">☰</button><div class="breadcrumb">Lendo: <strong id="current-section">Introdução</strong></div></div>
+  <div class="actions"><button id="print-btn" class="action-btn" title="Imprimir ou salvar como PDF">⎙ <span>Salvar PDF</span></button><button id="theme-toggle" class="icon-btn" aria-label="Alternar tema">☾</button></div>
+</header>
+<main class="main">
+  <section class="hero">
+    <div class="hero-grid">
+      <div>
+        <span class="eyebrow">● Método experimental · DDR4</span>
+        <h1>Overclock de memória, explicado visualmente.</h1>
+        <p>Um manual técnico para entender a arquitetura da DDR4, identificar ICs, ajustar frequência e timings e validar estabilidade sem transformar valores comunitários em regras universais.</p>
+        <div class="hero-cta"><a class="primary-cta" href="#aviso-essencial">Começar pelo essencial →</a><a class="secondary-cta" href="#método-completo-de-overclock">Ir ao método completo</a></div>
+        <div class="hero-stats"><div class="stat"><b>6.300+</b><span>palavras técnicas</span></div><div class="stat"><b>26</b><span>capítulos-base</span></div><div class="stat"><b>11</b><span>diagramas SVG</span></div><div class="stat"><b>100%</b><span>arquivo offline</span></div></div>
+      </div>
+      <div class="calc-card" aria-label="Calculadora DDR4">
+        <h2>Calculadora rápida</h2><p>Compare latência CAS teórica, clock físico e banda máxima.</p>
+        <div class="calc-grid">
+          <div class="calc-field"><label for="calc-mt">Taxa DDR (MT/s)</label><input id="calc-mt" type="number" min="800" step="100" value="3600"></div>
+          <div class="calc-field"><label for="calc-cl">CAS Latency (CL)</label><input id="calc-cl" type="number" min="4" step="1" value="16"></div>
+          <div class="calc-field" style="grid-column:1/-1"><label for="calc-channels">Número de canais</label><input id="calc-channels" type="number" min="1" max="8" step="1" value="2"></div>
+        </div>
+        <div class="calc-results"><div class="calc-result"><small>CAS teórico</small><strong id="calc-ns">8.89 ns</strong></div><div class="calc-result"><small>tCK</small><strong id="calc-tck">0.556 ns</strong></div><div class="calc-result"><small>Banda máxima</small><strong id="calc-bw">57.6 GB/s</strong></div><div class="calc-result"><small>Clock físico</small><strong id="calc-clock">1800 MHz</strong></div></div>
+      </div>
+    </div>
+  </section>
+  <section class="feature-grid" aria-label="Princípios do guia">
+    <div class="feature"><div class="feature-icon">01</div><h3>Método antes de números</h3><p>Cada ajuste é tratado como hipótese: alterar, testar, medir, registrar e manter margem.</p></div>
+    <div class="feature"><div class="feature-icon">02</div><h3>Contexto de plataforma</h3><p>Intel, Gear Mode e AMD MCLK/UCLK/FCLK são explicados separadamente.</p></div>
+    <div class="feature"><div class="feature-icon">03</div><h3>Estabilidade em primeiro lugar</h3><p>Boot não é estabilidade. O protocolo usa cargas complementares e temperatura real.</p></div>
+  </section>
+  <nav class="quick-nav" aria-label="Atalhos"><a href="#ics-os-chips-reais-da-memória">ICs da RAM</a><a href="#método-completo-de-overclock">Método completo</a><a href="#tensões-método-correto-e-limites">Tensões</a><a href="#protocolo-de-estabilidade">Estabilidade</a><a href="#fluxo-de-diagnóstico-de-erros">Diagnóstico</a><a href="#checklist-final">Checklist final</a></nav>
+  <article class="guide-article" id="guide"><section class="chapter" data-search="1. como usar este guia" data-title="1. Como usar este guia"><span class="chapter-kicker">Seção 01</span><h1 id="como-usar-este-guia">1. Como usar este guia<a aria-label="Copiar link desta seção" class="heading-anchor" href="#como-usar-este-guia" title="Link direto">#</a></h1><p>Não copie uma tabela inteira e aplique de uma vez. O processo correto
+é experimental:</p><figure class="diagram" data-diagram="1">
+<svg alt="Fluxo Ajuste" aria-label="Fluxo Ajuste" id="svg_f446321fbab152d27af9" preserveAspectRatio="xMidYMid meet" role="img" viewbox="0.00 0.00 1378.15 303.80">
+<g class="graph" id="svg_f446321fbab152d27af9_graph0" transform="scale(1 1) rotate(0) translate(14.4 289.4)">
+<title>G</title>
+<!-- A -->
+<g class="node" id="svg_f446321fbab152d27af9_node1">
+<title>A</title>
+<path d="M98,-214C98,-214 12,-214 12,-214 6,-214 0,-208 0,-202 0,-202 0,-190 0,-190 0,-184 6,-178 12,-178 12,-178 98,-178 98,-178 104,-178 110,-184 110,-190 110,-190 110,-202 110,-202 110,-208 104,-214 98,-214" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="10.00" text-anchor="middle" x="55" y="-199">Configuração stock</text>
+<text font-family="DejaVu Sans" font-size="10.00" text-anchor="middle" x="55" y="-188">estável</text>
+</g>
+<!-- B -->
+<g class="node" id="svg_f446321fbab152d27af9_node2">
+<title>B</title>
+<path d="M223,-214C223,-214 155,-214 155,-214 149,-214 143,-208 143,-202 143,-202 143,-190 143,-190 143,-184 149,-178 155,-178 155,-178 223,-178 223,-178 229,-178 235,-184 235,-190 235,-190 235,-202 235,-202 235,-208 229,-214 223,-214" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="10.00" text-anchor="middle" x="189" y="-193.5">Definir objetivo</text>
+</g>
+<!-- A&#45;&gt;B -->
+<g class="edge" id="svg_f446321fbab152d27af9_edge1">
+<title>A-&gt;B</title>
+<path d="M110.07,-196C117.51,-196 125.16,-196 132.62,-196" fill="none" stroke="black"></path>
+<polygon fill="black" points="132.65,-199.5 142.65,-196 132.65,-192.5 132.65,-199.5" stroke="black"></polygon>
+</g>
+<!-- C -->
+<g class="node" id="svg_f446321fbab152d27af9_node3">
+<title>C</title>
+<path d="M373,-214C373,-214 280,-214 280,-214 274,-214 268,-208 268,-202 268,-202 268,-190 268,-190 268,-184 274,-178 280,-178 280,-178 373,-178 373,-178 379,-178 385,-184 385,-190 385,-190 385,-202 385,-202 385,-208 379,-214 373,-214" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="10.00" text-anchor="middle" x="326.5" y="-193.5">Alterar uma variável</text>
+</g>
+<!-- B&#45;&gt;C -->
+<g class="edge" id="svg_f446321fbab152d27af9_edge2">
+<title>B-&gt;C</title>
+<path d="M235.12,-196C242.4,-196 250.07,-196 257.75,-196" fill="none" stroke="black"></path>
+<polygon fill="black" points="257.8,-199.5 267.8,-196 257.8,-192.5 257.8,-199.5" stroke="black"></polygon>
+</g>
+<!-- D -->
+<g class="node" id="svg_f446321fbab152d27af9_node4">
+<title>D</title>
+<path d="M469.73,-210.71C469.73,-210.71 429.77,-199.29 429.77,-199.29 424,-197.65 424,-194.35 429.77,-192.71 429.77,-192.71 469.73,-181.29 469.73,-181.29 475.5,-179.65 487.04,-179.65 492.81,-181.29 492.81,-181.29 532.77,-192.71 532.77,-192.71 538.54,-194.35 538.54,-197.65 532.77,-199.29 532.77,-199.29 492.81,-210.71 492.81,-210.71 487.04,-212.35 475.5,-212.35 469.73,-210.71" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="10.00" text-anchor="middle" x="481.27" y="-193.5">Teste rápido</text>
+</g>
+<!-- C&#45;&gt;D -->
+<g class="edge" id="svg_f446321fbab152d27af9_edge3">
+<title>C-&gt;D</title>
+<path d="M385.26,-196C392.72,-196 400.43,-196 408.09,-196" fill="none" stroke="black"></path>
+<polygon fill="black" points="408.1,-199.5 418.1,-196 408.1,-192.5 408.1,-199.5" stroke="black"></polygon>
+</g>
+<!-- E -->
+<g class="node" id="svg_f446321fbab152d27af9_node5">
+<title>E</title>
+<path d="M1337.35,-200C1337.35,-200 1250.35,-200 1250.35,-200 1244.35,-200 1238.35,-194 1238.35,-188 1238.35,-188 1238.35,-176 1238.35,-176 1238.35,-170 1244.35,-164 1250.35,-164 1250.35,-164 1337.35,-164 1337.35,-164 1343.35,-164 1349.35,-170 1349.35,-176 1349.35,-176 1349.35,-188 1349.35,-188 1349.35,-194 1343.35,-200 1337.35,-200" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="10.00" text-anchor="middle" x="1293.85" y="-179.5">Reverter ou corrigir</text>
+</g>
+<!-- D&#45;&gt;E -->
+<g class="edge" id="svg_f446321fbab152d27af9_edge4">
+<title>D-&gt;E</title>
+<path d="M516.8,-203.95C555.84,-212.23 621.4,-224 678.54,-224 678.54,-224 678.54,-224 1080.95,-224 1131.12,-224 1186.72,-212.53 1228.38,-201.58" fill="none" stroke="black"></path>
+<polygon fill="black" points="1229.37,-204.94 1238.12,-198.96 1227.55,-198.18 1229.37,-204.94" stroke="black"></polygon>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="869.54" y="-226.8"> Erro</text>
+</g>
+<!-- F -->
+<g class="node" id="svg_f446321fbab152d27af9_node6">
+<title>F</title>
+<path d="M725.54,-147C725.54,-147 633.54,-147 633.54,-147 627.54,-147 621.54,-141 621.54,-135 621.54,-135 621.54,-123 621.54,-123 621.54,-117 627.54,-111 633.54,-111 633.54,-111 725.54,-111 725.54,-111 731.54,-111 737.54,-117 737.54,-123 737.54,-123 737.54,-135 737.54,-135 737.54,-141 731.54,-147 725.54,-147" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="10.00" text-anchor="middle" x="679.54" y="-126.5">Benchmark repetido</text>
+</g>
+<!-- D&#45;&gt;F -->
+<g class="edge" id="svg_f446321fbab152d27af9_edge6">
+<title>D-&gt;F</title>
+<path d="M510.81,-186.26C538.21,-176.9 580.54,-162.45 615.81,-150.41" fill="none" stroke="black"></path>
+<polygon fill="black" points="617.22,-153.63 625.56,-147.09 614.96,-147 617.22,-153.63" stroke="black"></polygon>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="583.04" y="-170.8"> Sem erro</text>
+</g>
+<!-- E&#45;&gt;C -->
+<g class="edge" id="svg_f446321fbab152d27af9_edge5">
+<title>E-&gt;C</title>
+<path d="M1269.23,-200.15C1231.58,-227.22 1154.67,-275 1080.95,-275 480.27,-275 480.27,-275 480.27,-275 432.44,-275 384.65,-244.07 355.58,-220.91" fill="none" stroke="black"></path>
+<polygon fill="black" points="357.49,-217.95 347.54,-214.32 353.05,-223.37 357.49,-217.95" stroke="black"></polygon>
+</g>
+<!-- F&#45;&gt;E -->
+<g class="edge" id="svg_f446321fbab152d27af9_edge7">
+<title>F-&gt;E</title>
+<path d="M737.7,-115.04C761.38,-109.56 789.19,-103.51 814.54,-99 971.43,-71.06 1013.77,-60.3 1172.35,-76 1194.91,-78.23 1204.16,-72.48 1222.35,-86 1234.48,-95.01 1229.94,-103.44 1238.35,-116 1247.69,-129.94 1259.4,-144.43 1269.56,-156.27" fill="none" stroke="black"></path>
+<polygon fill="black" points="1267.1,-158.76 1276.31,-164 1272.37,-154.16 1267.1,-158.76" stroke="black"></polygon>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="956.04" y="-80.8"> Piorou</text>
+</g>
+<!-- G -->
+<g class="node" id="svg_f446321fbab152d27af9_node7">
+<title>G</title>
+<path d="M912.54,-147C912.54,-147 826.54,-147 826.54,-147 820.54,-147 814.54,-141 814.54,-135 814.54,-135 814.54,-123 814.54,-123 814.54,-117 820.54,-111 826.54,-111 826.54,-111 912.54,-111 912.54,-111 918.54,-111 924.54,-117 924.54,-123 924.54,-123 924.54,-135 924.54,-135 924.54,-141 918.54,-147 912.54,-147" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="10.00" text-anchor="middle" x="869.54" y="-126.5">Registrar resultado</text>
+</g>
+<!-- F&#45;&gt;G -->
+<g class="edge" id="svg_f446321fbab152d27af9_edge8">
+<title>F-&gt;G</title>
+<path d="M737.71,-129C758.79,-129 782.8,-129 804.45,-129" fill="none" stroke="black"></path>
+<polygon fill="black" points="804.53,-132.5 814.53,-129 804.53,-125.5 804.53,-132.5" stroke="black"></polygon>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="776.04" y="-131.8"> Melhorou</text>
+</g>
+<!-- H -->
+<g class="node" id="svg_f446321fbab152d27af9_node8">
+<title>H</title>
+<path d="M1068.17,-122.7C1068.17,-122.7 999.41,-109.3 999.41,-109.3 993.52,-108.15 993.52,-105.85 999.41,-104.7 999.41,-104.7 1068.17,-91.3 1068.17,-91.3 1074.06,-90.15 1085.84,-90.15 1091.72,-91.3 1091.72,-91.3 1160.48,-104.7 1160.48,-104.7 1166.37,-105.85 1166.37,-108.15 1160.48,-109.3 1160.48,-109.3 1091.72,-122.7 1091.72,-122.7 1085.84,-123.85 1074.06,-123.85 1068.17,-122.7" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="10.00" text-anchor="middle" x="1079.95" y="-104.5">Teste intermediário</text>
+</g>
+<!-- G&#45;&gt;H -->
+<g class="edge" id="svg_f446321fbab152d27af9_edge9">
+<title>G-&gt;H</title>
+<path d="M924.75,-123.28C950.64,-120.54 981.92,-117.24 1009.52,-114.33" fill="none" stroke="black"></path>
+<polygon fill="black" points="1009.93,-117.8 1019.51,-113.27 1009.2,-110.84 1009.93,-117.8" stroke="black"></polygon>
+</g>
+<!-- J -->
+<g class="node" id="svg_f446321fbab152d27af9_node10">
+<title>J</title>
+<path d="M1126.95,-186C1126.95,-186 1032.95,-186 1032.95,-186 1026.95,-186 1020.95,-180 1020.95,-174 1020.95,-174 1020.95,-162 1020.95,-162 1020.95,-156 1026.95,-150 1032.95,-150 1032.95,-150 1126.95,-150 1126.95,-150 1132.95,-150 1138.95,-156 1138.95,-162 1138.95,-162 1138.95,-174 1138.95,-174 1138.95,-180 1132.95,-186 1126.95,-186" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="10.00" text-anchor="middle" x="1079.95" y="-165.5">Validação final longa</text>
+</g>
+<!-- G&#45;&gt;J -->
+<g class="edge" id="svg_f446321fbab152d27af9_edge13">
+<title>G-&gt;J</title>
+<path d="M924.75,-139.14C950.96,-144.05 982.7,-149.99 1010.55,-155.2" fill="none" stroke="black"></path>
+<polygon fill="black" points="1010.15,-158.69 1020.62,-157.09 1011.43,-151.81 1010.15,-158.69" stroke="black"></polygon>
+</g>
+<!-- H&#45;&gt;E -->
+<g class="edge" id="svg_f446321fbab152d27af9_edge10">
+<title>H-&gt;E</title>
+<path d="M1114.87,-118.3C1132.12,-124.09 1153.39,-131.32 1172.35,-138 1192.75,-145.18 1215.02,-153.25 1234.79,-160.49" fill="none" stroke="black"></path>
+<polygon fill="black" points="1233.69,-163.81 1244.28,-163.97 1236.1,-157.24 1233.69,-163.81" stroke="black"></polygon>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="1205.35" y="-157.8"> Erro</text>
+</g>
+<!-- I -->
+<g class="node" id="svg_f446321fbab152d27af9_node9">
+<title>I</title>
+<path d="M1331.85,-103C1331.85,-103 1255.85,-103 1255.85,-103 1249.85,-103 1243.85,-97 1243.85,-91 1243.85,-91 1243.85,-79 1243.85,-79 1243.85,-73 1249.85,-67 1255.85,-67 1255.85,-67 1331.85,-67 1331.85,-67 1337.85,-67 1343.85,-73 1343.85,-79 1343.85,-79 1343.85,-91 1343.85,-91 1343.85,-97 1337.85,-103 1331.85,-103" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="10.00" text-anchor="middle" x="1293.85" y="-82.5">Próxima variável</text>
+</g>
+<!-- H&#45;&gt;I -->
+<g class="edge" id="svg_f446321fbab152d27af9_edge11">
+<title>H-&gt;I</title>
+<path d="M1140.54,-100.81C1169.67,-97.79 1204.62,-94.16 1233.69,-91.14" fill="none" stroke="black"></path>
+<polygon fill="black" points="1234.12,-94.62 1243.71,-90.1 1233.4,-87.65 1234.12,-94.62" stroke="black"></polygon>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="1205.35" y="-97.8"> Passou</text>
+</g>
+<!-- I&#45;&gt;C -->
+<g class="edge" id="svg_f446321fbab152d27af9_edge12">
+<title>I-&gt;C</title>
+<path d="M1266.78,-66.97C1228.07,-42.02 1152.3,0 1080.95,0 480.27,0 480.27,0 480.27,0 395.97,0 351.35,-114.2 334.96,-168.26" fill="none" stroke="black"></path>
+<polygon fill="black" points="331.58,-167.33 332.13,-177.91 338.3,-169.3 331.58,-167.33" stroke="black"></polygon>
+</g>
+</g>
+</svg>
+<figcaption>
+Fluxo Ajuste
+</figcaption>
+</figure><h2 id="três-objetivos-possíveis">Três objetivos possíveis</h2><h3 id="perfil-conservador">Perfil conservador</h3><ul>
+<li>tensão próxima ao XMP;</li>
+<li>frequência moderada;</li>
+<li>timings ajustados sem perseguir o limite;</li>
+<li>prioridade: confiabilidade.</li>
+</ul><h3 id="perfil-de-desempenho-diário">Perfil de desempenho diário</h3><ul>
+<li>frequência e timings otimizados;</li>
+<li>várias horas de testes complementares;</li>
+<li>temperatura monitorada;</li>
+<li>prioridade: desempenho com margem.</li>
+</ul><h3 id="perfil-de-benchmark">Perfil de benchmark</h3><ul>
+<li>opera perto do limite;</li>
+<li>pode exigir refrigeração ativa e tensões agressivas;</li>
+<li>não deve ser confundido com perfil diário.</li>
+</ul><blockquote class="callout danger"><span class="callout-label">Atenção crítica</span>
+<p><strong>Nunca use “deu boot” como critério de estabilidade.</strong>
+Boot apenas prova que o treinamento da memória encontrou uma combinação
+funcional o suficiente para iniciar.</p>
+</blockquote></section><section class="chapter" data-search="2. modelo mental da memória
+ddr4" data-title="2. Modelo mental da memória
+DDR4"><span class="chapter-kicker">Seção 02</span><h1 id="modelo-mental-da-memória-ddr4">2. Modelo mental da memória
+DDR4<a aria-label="Copiar link desta seção" class="heading-anchor" href="#modelo-mental-da-memória-ddr4" title="Link direto">#</a></h1><p>A memória não trabalha sozinha. O caminho dos dados passa por CPU,
+controlador, placa-mãe e DIMMs.</p><figure class="diagram" data-diagram="2">
+<svg alt="Caminho Memoria" aria-label="Caminho Memoria" id="svg_ece3bb1710c8c76ac762" preserveAspectRatio="xMidYMid meet" role="img" viewbox="0.00 0.00 738.80 118.80">
+<g class="graph" id="svg_ece3bb1710c8c76ac762_graph0" transform="scale(1 1) rotate(0) translate(14.4 104.4)">
+<title>G</title>
+<!-- Core -->
+<g class="node" id="svg_ece3bb1710c8c76ac762_node1">
+<title>Core</title>
+<path d="M82,-63C82,-63 12,-63 12,-63 6,-63 0,-57 0,-51 0,-51 0,-39 0,-39 0,-33 6,-27 12,-27 12,-27 82,-27 82,-27 88,-27 94,-33 94,-39 94,-39 94,-51 94,-51 94,-57 88,-63 82,-63" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="10.00" text-anchor="middle" x="47" y="-42.5">Núcleos da CPU</text>
+</g>
+<!-- Cache -->
+<g class="node" id="svg_ece3bb1710c8c76ac762_node2">
+<title>Cache</title>
+<path d="M207,-63C207,-63 142,-63 142,-63 136,-63 130,-57 130,-51 130,-51 130,-39 130,-39 130,-33 136,-27 142,-27 142,-27 207,-27 207,-27 213,-27 219,-33 219,-39 219,-39 219,-51 219,-51 219,-57 213,-63 207,-63" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="10.00" text-anchor="middle" x="174.5" y="-42.5">Cache L1/L2/L3</text>
+</g>
+<!-- Core&#45;&gt;Cache -->
+<g class="edge" id="svg_ece3bb1710c8c76ac762_edge1">
+<title>Core-&gt;Cache</title>
+<path d="M94.02,-45C102.37,-45 111.16,-45 119.71,-45" fill="none" stroke="black"></path>
+<polygon fill="black" points="119.99,-48.5 129.99,-45 119.99,-41.5 119.99,-48.5" stroke="black"></polygon>
+</g>
+<!-- IMC -->
+<g class="node" id="svg_ece3bb1710c8c76ac762_node3">
+<title>IMC</title>
+<path d="M379,-63C379,-63 267,-63 267,-63 261,-63 255,-57 255,-51 255,-51 255,-39 255,-39 255,-33 261,-27 267,-27 267,-27 379,-27 379,-27 385,-27 391,-33 391,-39 391,-39 391,-51 391,-51 391,-57 385,-63 379,-63" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="10.00" text-anchor="middle" x="323" y="-48">Controlador de memória</text>
+<text font-family="DejaVu Sans" font-size="10.00" text-anchor="middle" x="323" y="-37">IMC</text>
+</g>
+<!-- Cache&#45;&gt;IMC -->
+<g class="edge" id="svg_ece3bb1710c8c76ac762_edge2">
+<title>Cache-&gt;IMC</title>
+<path d="M219.06,-45C227.12,-45 235.76,-45 244.48,-45" fill="none" stroke="black"></path>
+<polygon fill="black" points="244.73,-48.5 254.73,-45 244.73,-41.5 244.73,-48.5" stroke="black"></polygon>
+</g>
+<!-- A -->
+<g class="node" id="svg_ece3bb1710c8c76ac762_node4">
+<title>A</title>
+<path d="M469,-90C469,-90 439,-90 439,-90 433,-90 427,-84 427,-78 427,-78 427,-66 427,-66 427,-60 433,-54 439,-54 439,-54 469,-54 469,-54 475,-54 481,-60 481,-66 481,-66 481,-78 481,-78 481,-84 475,-90 469,-90" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="10.00" text-anchor="middle" x="454" y="-69.5">Canal A</text>
+</g>
+<!-- IMC&#45;&gt;A -->
+<g class="edge" id="svg_ece3bb1710c8c76ac762_edge3">
+<title>IMC-&gt;A</title>
+<path d="M391.14,-59.05C400.1,-60.93 408.98,-62.79 417.11,-64.49" fill="none" stroke="black"></path>
+<polygon fill="black" points="416.44,-67.92 426.94,-66.55 417.87,-61.07 416.44,-67.92" stroke="black"></polygon>
+</g>
+<!-- B -->
+<g class="node" id="svg_ece3bb1710c8c76ac762_node5">
+<title>B</title>
+<path d="M469,-36C469,-36 439,-36 439,-36 433,-36 427,-30 427,-24 427,-24 427,-12 427,-12 427,-6 433,0 439,0 439,0 469,0 469,0 475,0 481,-6 481,-12 481,-12 481,-24 481,-24 481,-30 475,-36 469,-36" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="10.00" text-anchor="middle" x="454" y="-15.5">Canal B</text>
+</g>
+<!-- IMC&#45;&gt;B -->
+<g class="edge" id="svg_ece3bb1710c8c76ac762_edge4">
+<title>IMC-&gt;B</title>
+<path d="M391.14,-30.95C400.1,-29.07 408.98,-27.21 417.11,-25.51" fill="none" stroke="black"></path>
+<polygon fill="black" points="417.87,-28.93 426.94,-23.45 416.44,-22.08 417.87,-28.93" stroke="black"></polygon>
+</g>
+<!-- DA -->
+<g class="node" id="svg_ece3bb1710c8c76ac762_node6">
+<title>DA</title>
+<path d="M566,-90C566,-90 529,-90 529,-90 523,-90 517,-84 517,-78 517,-78 517,-66 517,-66 517,-60 523,-54 529,-54 529,-54 566,-54 566,-54 572,-54 578,-60 578,-66 578,-66 578,-78 578,-78 578,-84 572,-90 566,-90" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="10.00" text-anchor="middle" x="547.5" y="-69.5">DIMM A2</text>
+</g>
+<!-- A&#45;&gt;DA -->
+<g class="edge" id="svg_ece3bb1710c8c76ac762_edge5">
+<title>A-&gt;DA</title>
+<path d="M481.47,-72C489.35,-72 498.16,-72 506.69,-72" fill="none" stroke="black"></path>
+<polygon fill="black" points="506.88,-75.5 516.88,-72 506.88,-68.5 506.88,-75.5" stroke="black"></polygon>
+</g>
+<!-- DB -->
+<g class="node" id="svg_ece3bb1710c8c76ac762_node7">
+<title>DB</title>
+<path d="M566,-36C566,-36 529,-36 529,-36 523,-36 517,-30 517,-24 517,-24 517,-12 517,-12 517,-6 523,0 529,0 529,0 566,0 566,0 572,0 578,-6 578,-12 578,-12 578,-24 578,-24 578,-30 572,-36 566,-36" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="10.00" text-anchor="middle" x="547.5" y="-15.5">DIMM B2</text>
+</g>
+<!-- B&#45;&gt;DB -->
+<g class="edge" id="svg_ece3bb1710c8c76ac762_edge7">
+<title>B-&gt;DB</title>
+<path d="M481.47,-18C489.35,-18 498.16,-18 506.69,-18" fill="none" stroke="black"></path>
+<polygon fill="black" points="506.88,-21.5 516.88,-18 506.88,-14.5 506.88,-21.5" stroke="black"></polygon>
+</g>
+<!-- IA -->
+<g class="node" id="svg_ece3bb1710c8c76ac762_node8">
+<title>IA</title>
+<path d="M698,-90C698,-90 626,-90 626,-90 620,-90 614,-84 614,-78 614,-78 614,-66 614,-66 614,-60 620,-54 626,-54 626,-54 698,-54 698,-54 704,-54 710,-60 710,-66 710,-66 710,-78 710,-78 710,-84 704,-90 698,-90" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="10.00" text-anchor="middle" x="662" y="-75">Ranks, bancos e</text>
+<text font-family="DejaVu Sans" font-size="10.00" text-anchor="middle" x="662" y="-64">células DRAM</text>
+</g>
+<!-- DA&#45;&gt;IA -->
+<g class="edge" id="svg_ece3bb1710c8c76ac762_edge6">
+<title>DA-&gt;IA</title>
+<path d="M578.06,-72C586,-72 594.88,-72 603.78,-72" fill="none" stroke="black"></path>
+<polygon fill="black" points="603.8,-75.5 613.8,-72 603.8,-68.5 603.8,-75.5" stroke="black"></polygon>
+</g>
+<!-- IB -->
+<g class="node" id="svg_ece3bb1710c8c76ac762_node9">
+<title>IB</title>
+<path d="M698,-36C698,-36 626,-36 626,-36 620,-36 614,-30 614,-24 614,-24 614,-12 614,-12 614,-6 620,0 626,0 626,0 698,0 698,0 704,0 710,-6 710,-12 710,-12 710,-24 710,-24 710,-30 704,-36 698,-36" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="10.00" text-anchor="middle" x="662" y="-21">Ranks, bancos e</text>
+<text font-family="DejaVu Sans" font-size="10.00" text-anchor="middle" x="662" y="-10">células DRAM</text>
+</g>
+<!-- DB&#45;&gt;IB -->
+<g class="edge" id="svg_ece3bb1710c8c76ac762_edge8">
+<title>DB-&gt;IB</title>
+<path d="M578.06,-18C586,-18 594.88,-18 603.78,-18" fill="none" stroke="black"></path>
+<polygon fill="black" points="603.8,-21.5 613.8,-18 603.8,-14.5 603.8,-21.5" stroke="black"></polygon>
+</g>
+</g>
+</svg>
+<figcaption>
+Caminho Memoria
+</figcaption>
+</figure><p>O resultado do overclock é limitado pelo elo mais fraco:</p><pre class="text"><code>Resultado real = mínimo entre:
+
+IC da RAM
+× qualidade do bin
+× PCB do módulo
+× layout da placa-mãe
+× BIOS e treinamento
+× IMC da CPU
+× quantidade de DIMMs e ranks
+× temperatura
+× tensão e integridade de sinal</code></pre><p>Por isso, dois usuários com o mesmo modelo de memória podem obter
+resultados diferentes.</p></section><section class="chapter" data-search="3. frequência, mt/s e latência
+real" data-title="3. Frequência, MT/s e latência
+real"><span class="chapter-kicker">Seção 03</span><h1 id="frequência-mts-e-latência-real">3. Frequência, MT/s e latência
+real<a aria-label="Copiar link desta seção" class="heading-anchor" href="#frequência-mts-e-latência-real" title="Link direto">#</a></h1><h2 id="mhz-não-é-a-mesma-coisa-que-mts">3.1 MHz não é a mesma coisa que
+MT/s</h2><p>DDR significa <strong>Double Data Rate</strong>. Há duas
+transferências por ciclo de clock.</p><div aria-label="Tabela com rolagem horizontal" class="table-scroll" role="region"><table>
+<thead>
+<tr class="header">
+<th style="text-align: right;">Nome comercial</th>
+<th style="text-align: right;">Clock físico aproximado</th>
+<th style="text-align: right;">Taxa efetiva</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">DDR4-2666</td>
+<td style="text-align: right;">1333 MHz</td>
+<td style="text-align: right;">2666 MT/s</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">DDR4-3200</td>
+<td style="text-align: right;">1600 MHz</td>
+<td style="text-align: right;">3200 MT/s</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">DDR4-3600</td>
+<td style="text-align: right;">1800 MHz</td>
+<td style="text-align: right;">3600 MT/s</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">DDR4-4000</td>
+<td style="text-align: right;">2000 MHz</td>
+<td style="text-align: right;">4000 MT/s</td>
+</tr>
+</tbody>
+</table></div><p>É comum o mercado chamar DDR4-3200 de “3200 MHz”, mas tecnicamente a
+taxa é <strong>3200 MT/s</strong> e o clock é aproximadamente
+<strong>1600 MHz</strong>.</p><h2 id="duração-de-um-ciclo">3.2 Duração de um ciclo</h2><pre class="text"><code>tCK em nanossegundos = 2000 / taxa DDR em MT/s</code></pre><p>Exemplo em DDR4-3600:</p><pre class="text"><code>tCK = 2000 / 3600
+    = 0,555... ns por ciclo</code></pre><h2 id="converter-um-timing-em-nanossegundos">3.3 Converter um timing em
+nanossegundos</h2><pre class="text"><code>Tempo aproximado = timing × 2000 / taxa DDR</code></pre><div aria-label="Tabela com rolagem horizontal" class="table-scroll" role="region"><table>
+<thead>
+<tr class="header">
+<th>Configuração</th>
+<th style="text-align: right;">Cálculo</th>
+<th style="text-align: right;">Latência CAS teórica</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>3000 CL15</td>
+<td style="text-align: right;">15 × 2000 / 3000</td>
+<td style="text-align: right;">10,00 ns</td>
+</tr>
+<tr class="even">
+<td>3200 CL16</td>
+<td style="text-align: right;">16 × 2000 / 3200</td>
+<td style="text-align: right;">10,00 ns</td>
+</tr>
+<tr class="odd">
+<td>3600 CL16</td>
+<td style="text-align: right;">16 × 2000 / 3600</td>
+<td style="text-align: right;">8,89 ns</td>
+</tr>
+<tr class="even">
+<td>3600 CL18</td>
+<td style="text-align: right;">18 × 2000 / 3600</td>
+<td style="text-align: right;">10,00 ns</td>
+</tr>
+<tr class="odd">
+<td>4000 CL18</td>
+<td style="text-align: right;">18 × 2000 / 4000</td>
+<td style="text-align: right;">9,00 ns</td>
+</tr>
+</tbody>
+</table></div><blockquote class="callout warning"><span class="callout-label">Importante</span>
+<p>Essa conta mede somente o tempo correspondente ao timing escolhido.
+Ela <strong>não é a latência total do sistema</strong>, que também
+inclui controlador, filas, topologia, command rate, gear, fabric, cache
+e outros timings.</p>
+</blockquote><h2 id="largura-de-banda-teórica">3.4 Largura de banda teórica</h2><p>Cada canal DDR possui barramento de dados de 64 bits, equivalente a 8
+bytes.</p><pre class="text"><code>Largura de banda por canal = MT/s × 8 MB/s</code></pre><p>Exemplo DDR4-3600:</p><pre class="text"><code>1 canal: 3600 × 8  = 28.800 MB/s
+2 canais: 3600 × 16 = 57.600 MB/s</code></pre><p>A largura de banda medida será menor devido à eficiência do
+controlador, comandos, refreshes e padrão da carga.</p></section><section class="chapter" data-search="4. canais, dimms, ranks,
+chips x8 e x16" data-title="4. Canais, DIMMs, ranks,
+chips x8 e x16"><span class="chapter-kicker">Seção 04</span><h1 id="canais-dimms-ranks-chips-x8-e-x16">4. Canais, DIMMs, ranks,
+chips x8 e x16<a aria-label="Copiar link desta seção" class="heading-anchor" href="#canais-dimms-ranks-chips-x8-e-x16" title="Link direto">#</a></h1><h2 id="canal-não-é-dimm">4.1 Canal não é DIMM</h2><ul>
+<li><strong>Canal:</strong> ligação independente entre o IMC e a
+memória.</li>
+<li><strong>DIMM:</strong> módulo físico instalado no slot.</li>
+<li><strong>Rank:</strong> conjunto de chips que entrega uma palavra de
+64 bits ao controlador.</li>
+<li><strong>Banco/bank group:</strong> subdivisões internas do chip
+DRAM.</li>
+</ul><figure class="diagram" data-diagram="3">
+<svg alt="Operacao Leitura" aria-label="Operacao Leitura" id="svg_75a910ae0e9cfbe65150" preserveAspectRatio="xMidYMid meet" role="img" viewbox="0.00 0.00 1042.00 72.00">
+<g class="graph" id="svg_75a910ae0e9cfbe65150_graph0" transform="scale(1 1) rotate(0) translate(18 54)">
+<title>G</title>
+<!-- A -->
+<g class="node" id="svg_75a910ae0e9cfbe65150_node1">
+<title>A</title>
+<path d="M56,-36C56,-36 12,-36 12,-36 6,-36 0,-30 0,-24 0,-24 0,-12 0,-12 0,-6 6,0 12,0 12,0 56,0 56,0 62,0 68,-6 68,-12 68,-12 68,-24 68,-24 68,-30 62,-36 56,-36" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="34" y="-20.8">ACT</text>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="34" y="-10.8">Ativar linha</text>
+</g>
+<!-- B -->
+<g class="node" id="svg_75a910ae0e9cfbe65150_node2">
+<title>B</title>
+<path d="M176,-36C176,-36 116,-36 116,-36 110,-36 104,-30 104,-24 104,-24 104,-12 104,-12 104,-6 110,0 116,0 116,0 176,0 176,0 182,0 188,-6 188,-12 188,-12 188,-24 188,-24 188,-30 182,-36 176,-36" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="146" y="-15.8">Aguardar tRCD</text>
+</g>
+<!-- A&#45;&gt;B -->
+<g class="edge" id="svg_75a910ae0e9cfbe65150_edge1">
+<title>A-&gt;B</title>
+<path d="M68,-18C76.1,-18 84.96,-18 93.69,-18" fill="none" stroke="black"></path>
+<polygon fill="black" points="93.83,-21.5 103.83,-18 93.83,-14.5 93.83,-21.5" stroke="black"></polygon>
+</g>
+<!-- C -->
+<g class="node" id="svg_75a910ae0e9cfbe65150_node3">
+<title>C</title>
+<path d="M308,-36C308,-36 236,-36 236,-36 230,-36 224,-30 224,-24 224,-24 224,-12 224,-12 224,-6 230,0 236,0 236,0 308,0 308,0 314,0 320,-6 320,-12 320,-12 320,-24 320,-24 320,-30 314,-36 308,-36" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="272" y="-20.8">READ</text>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="272" y="-10.8">Selecionar coluna</text>
+</g>
+<!-- B&#45;&gt;C -->
+<g class="edge" id="svg_75a910ae0e9cfbe65150_edge2">
+<title>B-&gt;C</title>
+<path d="M188.29,-18C196.49,-18 205.24,-18 213.87,-18" fill="none" stroke="black"></path>
+<polygon fill="black" points="213.89,-21.5 223.89,-18 213.89,-14.5 213.89,-21.5" stroke="black"></polygon>
+</g>
+<!-- D -->
+<g class="node" id="svg_75a910ae0e9cfbe65150_node4">
+<title>D</title>
+<path d="M421,-36C421,-36 368,-36 368,-36 362,-36 356,-30 356,-24 356,-24 356,-12 356,-12 356,-6 362,0 368,0 368,0 421,0 421,0 427,0 433,-6 433,-12 433,-12 433,-24 433,-24 433,-30 427,-36 421,-36" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="394.5" y="-15.8">Aguardar tCL</text>
+</g>
+<!-- C&#45;&gt;D -->
+<g class="edge" id="svg_75a910ae0e9cfbe65150_edge3">
+<title>C-&gt;D</title>
+<path d="M320.28,-18C328.53,-18 337.12,-18 345.4,-18" fill="none" stroke="black"></path>
+<polygon fill="black" points="345.66,-21.5 355.66,-18 345.66,-14.5 345.66,-21.5" stroke="black"></polygon>
+</g>
+<!-- E -->
+<g class="node" id="svg_75a910ae0e9cfbe65150_node5">
+<title>E</title>
+<path d="M546,-36C546,-36 481,-36 481,-36 475,-36 469,-30 469,-24 469,-24 469,-12 469,-12 469,-6 475,0 481,0 481,0 546,0 546,0 552,0 558,-6 558,-12 558,-12 558,-24 558,-24 558,-30 552,-36 546,-36" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="513.5" y="-15.8">Dados retornam</text>
+</g>
+<!-- D&#45;&gt;E -->
+<g class="edge" id="svg_75a910ae0e9cfbe65150_edge4">
+<title>D-&gt;E</title>
+<path d="M433.16,-18C441.33,-18 450.11,-18 458.76,-18" fill="none" stroke="black"></path>
+<polygon fill="black" points="458.8,-21.5 468.8,-18 458.8,-14.5 458.8,-21.5" stroke="black"></polygon>
+</g>
+<!-- F -->
+<g class="node" id="svg_75a910ae0e9cfbe65150_node6">
+<title>F</title>
+<path d="M665,-36C665,-36 606,-36 606,-36 600,-36 594,-30 594,-24 594,-24 594,-12 594,-12 594,-6 600,0 606,0 606,0 665,0 665,0 671,0 677,-6 677,-12 677,-12 677,-24 677,-24 677,-30 671,-36 665,-36" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="635.5" y="-20.8">Respeitar tRAS</text>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="635.5" y="-10.8">e tRTP</text>
+</g>
+<!-- E&#45;&gt;F -->
+<g class="edge" id="svg_75a910ae0e9cfbe65150_edge5">
+<title>E-&gt;F</title>
+<path d="M558.16,-18C566.45,-18 575.19,-18 583.68,-18" fill="none" stroke="black"></path>
+<polygon fill="black" points="583.86,-21.5 593.86,-18 583.86,-14.5 583.86,-21.5" stroke="black"></polygon>
+</g>
+<!-- G -->
+<g class="node" id="svg_75a910ae0e9cfbe65150_node7">
+<title>G</title>
+<path d="M772,-36C772,-36 725,-36 725,-36 719,-36 713,-30 713,-24 713,-24 713,-12 713,-12 713,-6 719,0 725,0 725,0 772,0 772,0 778,0 784,-6 784,-12 784,-12 784,-24 784,-24 784,-30 778,-36 772,-36" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="748.5" y="-20.8">PRE</text>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="748.5" y="-10.8">Fechar linha</text>
+</g>
+<!-- F&#45;&gt;G -->
+<g class="edge" id="svg_75a910ae0e9cfbe65150_edge6">
+<title>F-&gt;G</title>
+<path d="M677.2,-18C685.47,-18 694.21,-18 702.62,-18" fill="none" stroke="black"></path>
+<polygon fill="black" points="702.65,-21.5 712.65,-18 702.65,-14.5 702.65,-21.5" stroke="black"></polygon>
+</g>
+<!-- H -->
+<g class="node" id="svg_75a910ae0e9cfbe65150_node8">
+<title>H</title>
+<path d="M885,-36C885,-36 832,-36 832,-36 826,-36 820,-30 820,-24 820,-24 820,-12 820,-12 820,-6 826,0 832,0 832,0 885,0 885,0 891,0 897,-6 897,-12 897,-12 897,-24 897,-24 897,-30 891,-36 885,-36" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="858.5" y="-15.8">Aguardar tRP</text>
+</g>
+<!-- G&#45;&gt;H -->
+<g class="edge" id="svg_75a910ae0e9cfbe65150_edge7">
+<title>G-&gt;H</title>
+<path d="M784.27,-18C792.33,-18 801.06,-18 809.58,-18" fill="none" stroke="black"></path>
+<polygon fill="black" points="809.81,-21.5 819.81,-18 809.81,-14.5 809.81,-21.5" stroke="black"></polygon>
+</g>
+<!-- I -->
+<g class="node" id="svg_75a910ae0e9cfbe65150_node9">
+<title>I</title>
+<path d="M994,-36C994,-36 945,-36 945,-36 939,-36 933,-30 933,-24 933,-24 933,-12 933,-12 933,-6 939,0 945,0 945,0 994,0 994,0 1000,0 1006,-6 1006,-12 1006,-12 1006,-24 1006,-24 1006,-30 1000,-36 994,-36" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="969.5" y="-15.8">Próximo ACT</text>
+</g>
+<!-- H&#45;&gt;I -->
+<g class="edge" id="svg_75a910ae0e9cfbe65150_edge8">
+<title>H-&gt;I</title>
+<path d="M897.01,-18C905.24,-18 914.05,-18 922.57,-18" fill="none" stroke="black"></path>
+<polygon fill="black" points="922.76,-21.5 932.76,-18 922.76,-14.5 922.76,-21.5" stroke="black"></polygon>
+</g>
+</g>
+</svg>
+<figcaption>
+Operacao Leitura
+</figcaption>
+</figure><h2 id="single-rank-e-dual-rank">4.2 Single rank e dual rank</h2><div aria-label="Tabela com rolagem horizontal" class="table-scroll" role="region"><table>
+<colgroup>
+<col style="width: 33%"/>
+<col style="width: 33%"/>
+<col style="width: 33%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Característica</th>
+<th>Single rank</th>
+<th>Dual rank</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Carga elétrica no IMC</td>
+<td>geralmente menor</td>
+<td>geralmente maior</td>
+</tr>
+<tr class="even">
+<td>Frequência máxima</td>
+<td>frequentemente maior</td>
+<td>pode ser menor</td>
+</tr>
+<tr class="odd">
+<td>Rank interleaving</td>
+<td>menos oportunidades</td>
+<td>mais oportunidades</td>
+</tr>
+<tr class="even">
+<td>Desempenho na mesma frequência</td>
+<td>pode ser menor</td>
+<td>frequentemente maior</td>
+</tr>
+</tbody>
+</table></div><p>Dual rank pode melhorar desempenho porque o controlador alterna
+operações entre ranks. Enquanto um rank aguarda uma operação interna,
+outro pode atender uma solicitação.</p><h3 id="configurações-equivalentes-em-ranks-por-canal">Configurações
+equivalentes em ranks por canal</h3><ul>
+<li>2 × DIMM single rank: normalmente 1 rank por canal.</li>
+<li>2 × DIMM dual rank: normalmente 2 ranks por canal.</li>
+<li>4 × DIMM single rank: normalmente 2 ranks por canal.</li>
+</ul><p>A última configuração tem quantidade semelhante de ranks a 2 × dual
+rank, mas impõe uma topologia elétrica diferente por utilizar dois slots
+em cada canal.</p><h2 id="x8-e-x16-descrevem-largura-do-chip">4.3 x8 e x16 descrevem
+largura do chip</h2><p>“x8” e “x16” não significam automaticamente quantidade fixa de chips
+visíveis. Significam quantos bits cada dispositivo DRAM fornece.</p><p>Em muitos sistemas de consumo:</p><ul>
+<li>módulos construídos com chips x8 oferecem mais bancos/bank groups
+utilizáveis;</li>
+<li>módulos x16 podem apresentar desempenho menor em certas cargas;</li>
+<li>isso não deve ser confundido com “memória de 8 GB” ou “memória de 16
+GB”.</li>
+</ul><h2 id="instale-nos-slots-corretos">4.4 Instale nos slots corretos</h2><p>Siga o manual da placa-mãe. Em placas com quatro slots, a
+recomendação para dois módulos costuma ser <strong>A2 e B2</strong>, mas
+o manual é a autoridade.</p><blockquote class="callout note"><span class="callout-label">Nota técnica</span>
+<p>Não escolha slots apenas por estarem mais longe da GPU. O layout
+elétrico e a terminação foram projetados para slots específicos.</p>
+</blockquote></section><section class="chapter" data-search="5. como uma operação de
+memória acontece" data-title="5. Como uma operação de
+memória acontece"><span class="chapter-kicker">Seção 05</span><h1 id="como-uma-operação-de-memória-acontece">5. Como uma operação de
+memória acontece<a aria-label="Copiar link desta seção" class="heading-anchor" href="#como-uma-operação-de-memória-acontece" title="Link direto">#</a></h1><p>Uma leitura simplificada envolve abrir uma linha, selecionar uma
+coluna, transferir os dados e eventualmente fechar a linha.</p><figure class="diagram" data-diagram="4">
+<svg alt="Canais Ranks" aria-label="Canais Ranks" id="svg_f8b22df62ba6d4c6820c" preserveAspectRatio="xMidYMid meet" role="img" viewbox="0.00 0.00 168.80 280.80">
+<g class="graph" id="svg_f8b22df62ba6d4c6820c_graph0" transform="scale(1 1) rotate(0) translate(14.4 266.4)">
+<title>G</title>
+<!-- IMC -->
+<g class="node" id="svg_f8b22df62ba6d4c6820c_node1">
+<title>IMC</title>
+<path d="M108,-252C108,-252 31,-252 31,-252 25,-252 19,-246 19,-240 19,-240 19,-228 19,-228 19,-222 25,-216 31,-216 31,-216 108,-216 108,-216 114,-216 120,-222 120,-228 120,-228 120,-240 120,-240 120,-246 114,-252 108,-252" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="10.00" text-anchor="middle" x="69.5" y="-231.5">IMC dual-channel</text>
+</g>
+<!-- A -->
+<g class="node" id="svg_f8b22df62ba6d4c6820c_node2">
+<title>A</title>
+<path d="M48.5,-180C48.5,-180 18.5,-180 18.5,-180 12.5,-180 6.5,-174 6.5,-168 6.5,-168 6.5,-156 6.5,-156 6.5,-150 12.5,-144 18.5,-144 18.5,-144 48.5,-144 48.5,-144 54.5,-144 60.5,-150 60.5,-156 60.5,-156 60.5,-168 60.5,-168 60.5,-174 54.5,-180 48.5,-180" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="10.00" text-anchor="middle" x="33.5" y="-159.5">Canal A</text>
+</g>
+<!-- IMC&#45;&gt;A -->
+<g class="edge" id="svg_f8b22df62ba6d4c6820c_edge1">
+<title>IMC-&gt;A</title>
+<path d="M60.6,-215.7C56.5,-207.73 51.55,-198.1 47.01,-189.26" fill="none" stroke="black"></path>
+<polygon fill="black" points="49.98,-187.4 42.3,-180.1 43.76,-190.6 49.98,-187.4" stroke="black"></polygon>
+</g>
+<!-- B -->
+<g class="node" id="svg_f8b22df62ba6d4c6820c_node3">
+<title>B</title>
+<path d="M122.5,-180C122.5,-180 92.5,-180 92.5,-180 86.5,-180 80.5,-174 80.5,-168 80.5,-168 80.5,-156 80.5,-156 80.5,-150 86.5,-144 92.5,-144 92.5,-144 122.5,-144 122.5,-144 128.5,-144 134.5,-150 134.5,-156 134.5,-156 134.5,-168 134.5,-168 134.5,-174 128.5,-180 122.5,-180" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="10.00" text-anchor="middle" x="107.5" y="-159.5">Canal B</text>
+</g>
+<!-- IMC&#45;&gt;B -->
+<g class="edge" id="svg_f8b22df62ba6d4c6820c_edge2">
+<title>IMC-&gt;B</title>
+<path d="M78.89,-215.7C83.26,-207.64 88.56,-197.89 93.4,-188.98" fill="none" stroke="black"></path>
+<polygon fill="black" points="96.52,-190.56 98.21,-180.1 90.37,-187.22 96.52,-190.56" stroke="black"></polygon>
+</g>
+<!-- A2 -->
+<g class="node" id="svg_f8b22df62ba6d4c6820c_node4">
+<title>A2</title>
+<path d="M49,-108C49,-108 12,-108 12,-108 6,-108 0,-102 0,-96 0,-96 0,-84 0,-84 0,-78 6,-72 12,-72 12,-72 49,-72 49,-72 55,-72 61,-78 61,-84 61,-84 61,-96 61,-96 61,-102 55,-108 49,-108" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="10.00" text-anchor="middle" x="30.5" y="-87.5">DIMM A2</text>
+</g>
+<!-- A&#45;&gt;A2 -->
+<g class="edge" id="svg_f8b22df62ba6d4c6820c_edge3">
+<title>A-&gt;A2</title>
+<path d="M32.76,-143.7C32.43,-135.98 32.03,-126.71 31.66,-118.11" fill="none" stroke="black"></path>
+<polygon fill="black" points="35.16,-117.95 31.23,-108.1 28.16,-118.25 35.16,-117.95" stroke="black"></polygon>
+</g>
+<!-- B2 -->
+<g class="node" id="svg_f8b22df62ba6d4c6820c_node5">
+<title>B2</title>
+<path d="M128,-108C128,-108 91,-108 91,-108 85,-108 79,-102 79,-96 79,-96 79,-84 79,-84 79,-78 85,-72 91,-72 91,-72 128,-72 128,-72 134,-72 140,-78 140,-84 140,-84 140,-96 140,-96 140,-102 134,-108 128,-108" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="10.00" text-anchor="middle" x="109.5" y="-87.5">DIMM B2</text>
+</g>
+<!-- B&#45;&gt;B2 -->
+<g class="edge" id="svg_f8b22df62ba6d4c6820c_edge5">
+<title>B-&gt;B2</title>
+<path d="M107.99,-143.7C108.21,-135.98 108.48,-126.71 108.73,-118.11" fill="none" stroke="black"></path>
+<polygon fill="black" points="112.22,-118.2 109.01,-108.1 105.23,-118 112.22,-118.2" stroke="black"></polygon>
+</g>
+<!-- AR -->
+<g class="node" id="svg_f8b22df62ba6d4c6820c_node6">
+<title>AR</title>
+<path d="M45.5,-36C45.5,-36 15.5,-36 15.5,-36 9.5,-36 3.5,-30 3.5,-24 3.5,-24 3.5,-12 3.5,-12 3.5,-6 9.5,0 15.5,0 15.5,0 45.5,0 45.5,0 51.5,0 57.5,-6 57.5,-12 57.5,-12 57.5,-24 57.5,-24 57.5,-30 51.5,-36 45.5,-36" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="10.00" text-anchor="middle" x="30.5" y="-15.5">Rank 1</text>
+</g>
+<!-- A2&#45;&gt;AR -->
+<g class="edge" id="svg_f8b22df62ba6d4c6820c_edge4">
+<title>A2-&gt;AR</title>
+<path d="M30.5,-71.7C30.5,-63.98 30.5,-54.71 30.5,-46.11" fill="none" stroke="black"></path>
+<polygon fill="black" points="34,-46.1 30.5,-36.1 27,-46.1 34,-46.1" stroke="black"></polygon>
+</g>
+<!-- BR -->
+<g class="node" id="svg_f8b22df62ba6d4c6820c_node7">
+<title>BR</title>
+<path d="M124.5,-36C124.5,-36 94.5,-36 94.5,-36 88.5,-36 82.5,-30 82.5,-24 82.5,-24 82.5,-12 82.5,-12 82.5,-6 88.5,0 94.5,0 94.5,0 124.5,0 124.5,0 130.5,0 136.5,-6 136.5,-12 136.5,-12 136.5,-24 136.5,-24 136.5,-30 130.5,-36 124.5,-36" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="10.00" text-anchor="middle" x="109.5" y="-15.5">Rank 1</text>
+</g>
+<!-- B2&#45;&gt;BR -->
+<g class="edge" id="svg_f8b22df62ba6d4c6820c_edge6">
+<title>B2-&gt;BR</title>
+<path d="M109.5,-71.7C109.5,-63.98 109.5,-54.71 109.5,-46.11" fill="none" stroke="black"></path>
+<polygon fill="black" points="113,-46.1 109.5,-36.1 106,-46.1 113,-46.1" stroke="black"></polygon>
+</g>
+</g>
+</svg>
+<figcaption>
+Canais Ranks
+</figcaption>
+</figure><h2 id="significado-conceitual">Significado conceitual</h2><ul>
+<li><strong>tRCD:</strong> atraso entre ativar a linha e acessar a
+coluna.</li>
+<li><strong>tCL:</strong> atraso de leitura após o comando READ.</li>
+<li><strong>tRTP:</strong> distância mínima entre leitura e
+precharge.</li>
+<li><strong>tRAS:</strong> janela mínima em que a linha permanece
+ativa.</li>
+<li><strong>tRP:</strong> tempo para fechar/preparar o banco para uma
+nova linha.</li>
+<li><strong>tRC:</strong> ciclo completo de linha, geralmente
+relacionado a tRAS + tRP.</li>
+</ul><h3 id="por-que-não-existe-uma-fórmula-universal-simples-para-tras">Por
+que não existe uma fórmula universal simples para tRAS</h3><p>É comum encontrar fórmulas como:</p><pre class="text"><code>tRAS = tCL + tRCD + 2</code></pre><p>ou:</p><pre class="text"><code>tRAS = tRCD + tRTP</code></pre><p>Essas expressões podem representar limites ou pontos de partida em
+contextos específicos, mas não são leis universais para todo IC e
+plataforma. Escritas, leituras, burst, tWR, treinamento do BIOS e
+mínimos internos também importam.</p><p><strong>Método correto:</strong> reduza tRAS gradualmente, teste e
+confirme se o firmware não está corrigindo o valor internamente. Depois
+valide tRC.</p></section><section class="chapter" data-search="6. timings
+primários, secundários e terciários" data-title="6. Timings
+primários, secundários e terciários"><span class="chapter-kicker">Seção 06</span><h1 id="timings-primários-secundários-e-terciários">6. Timings
+primários, secundários e terciários<a aria-label="Copiar link desta seção" class="heading-anchor" href="#timings-primários-secundários-e-terciários" title="Link direto">#</a></h1><p>As categorias variam entre ferramentas e fabricantes. Use-as como
+organização prática, não como definição física absoluta.</p><h2 id="primários">6.1 Primários</h2><div aria-label="Tabela com rolagem horizontal" class="table-scroll" role="region"><table>
+<thead>
+<tr class="header">
+<th>Timing</th>
+<th>Função simplificada</th>
+<th>Impacto típico</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>tCL</td>
+<td>READ até dados</td>
+<td>latência</td>
+</tr>
+<tr class="even">
+<td>tRCDRD</td>
+<td>ACT até READ</td>
+<td>latência e acesso a linha</td>
+</tr>
+<tr class="odd">
+<td>tRCDWR</td>
+<td>ACT até WRITE</td>
+<td>escrita</td>
+</tr>
+<tr class="even">
+<td>tRP</td>
+<td>PRE até próximo ACT</td>
+<td>troca de linha</td>
+</tr>
+<tr class="odd">
+<td>tRAS</td>
+<td>tempo mínimo de linha ativa</td>
+<td>integridade do ciclo</td>
+</tr>
+<tr class="even">
+<td>CR/CMD</td>
+<td>ciclos para aceitar comandos</td>
+<td>latência e treinamento</td>
+</tr>
+</tbody>
+</table></div><p>Em muitas plataformas Intel, tRCDRD e tRCDWR aparecem unidos como
+tRCD. Em AMD, podem ser separados.</p><h2 id="secundários">6.2 Secundários</h2><div aria-label="Tabela com rolagem horizontal" class="table-scroll" role="region"><table>
+<colgroup>
+<col style="width: 33%"/>
+<col style="width: 33%"/>
+<col style="width: 33%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Timing</th>
+<th>Função</th>
+<th>Observação</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>tRC</td>
+<td>ciclo completo de linha</td>
+<td>relacionado a tRAS + tRP</td>
+</tr>
+<tr class="even">
+<td>tRRDS/tRRDL</td>
+<td>intervalo entre ativações</td>
+<td>interage com tFAW</td>
+</tr>
+<tr class="odd">
+<td>tFAW</td>
+<td>janela para múltiplas ativações</td>
+<td>limita corrente/potência de ACT</td>
+</tr>
+<tr class="even">
+<td>tWTRS/tWTRL</td>
+<td>WRITE para READ</td>
+<td>turnaround do barramento</td>
+</tr>
+<tr class="odd">
+<td>tWR</td>
+<td>recuperação após escrita</td>
+<td>necessário antes de PRE</td>
+</tr>
+<tr class="even">
+<td>tRTP</td>
+<td>READ para PRE</td>
+<td>afeta fechamento de linha</td>
+</tr>
+<tr class="odd">
+<td>tCWL</td>
+<td>latência de escrita</td>
+<td>não é regida por “frequência par/ímpar”</td>
+</tr>
+<tr class="even">
+<td>tRFC</td>
+<td>duração do refresh</td>
+<td>grande impacto e sensibilidade por IC</td>
+</tr>
+</tbody>
+</table></div><h2 id="terciários-e-turnarounds">6.3 Terciários e turnarounds</h2><div aria-label="Tabela com rolagem horizontal" class="table-scroll" role="region"><table>
+<thead>
+<tr class="header">
+<th>Grupo</th>
+<th>O que controla</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>tRDRD</td>
+<td>leitura após leitura</td>
+</tr>
+<tr class="even">
+<td>tWRWR</td>
+<td>escrita após escrita</td>
+</tr>
+<tr class="odd">
+<td>tRDWR</td>
+<td>leitura para escrita</td>
+</tr>
+<tr class="even">
+<td>tWRRD</td>
+<td>escrita para leitura</td>
+</tr>
+<tr class="odd">
+<td>RTL/IOL Intel</td>
+<td>treinamento de ida/volta do sinal</td>
+</tr>
+<tr class="even">
+<td>SCL AMD</td>
+<td>espaçamento de operações repetidas</td>
+</tr>
+</tbody>
+</table></div><p>Terciários podem melhorar largura de banda e latência, mas tornam o
+diagnóstico mais difícil. Ajuste-os depois de estabilizar frequência,
+primários e secundários essenciais.</p></section><section class="chapter" data-search="7. refresh, trfc, trefi e
+temperatura" data-title="7. Refresh, tRFC, tREFI e
+temperatura"><span class="chapter-kicker">Seção 07</span><h1 id="refresh-trfc-trefi-e-temperatura">7. Refresh, tRFC, tREFI e
+temperatura<a aria-label="Copiar link desta seção" class="heading-anchor" href="#refresh-trfc-trefi-e-temperatura" title="Link direto">#</a></h1><p>Células DRAM armazenam carga elétrica e precisam ser restauradas
+periodicamente.</p><figure class="diagram" data-diagram="5">
+<svg alt="Refresh" aria-label="Refresh" id="svg_b23a11bcbbdf1c6f54c2" preserveAspectRatio="xMidYMid meet" role="img" viewbox="0.00 0.00 556.80 87.80">
+<g class="graph" id="svg_b23a11bcbbdf1c6f54c2_graph0" transform="scale(1 1) rotate(0) translate(14.4 73.4)">
+<title>G</title>
+<!-- A -->
+<g class="node" id="svg_b23a11bcbbdf1c6f54c2_node1">
+<title>A</title>
+<path d="M99,-36C99,-36 12,-36 12,-36 6,-36 0,-30 0,-24 0,-24 0,-12 0,-12 0,-6 6,0 12,0 12,0 99,0 99,0 105,0 111,-6 111,-12 111,-12 111,-24 111,-24 111,-30 105,-36 99,-36" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="10.00" text-anchor="middle" x="55.5" y="-15.5">Operações normais</text>
+</g>
+<!-- B -->
+<g class="node" id="svg_b23a11bcbbdf1c6f54c2_node2">
+<title>B</title>
+<path d="M224,-59C224,-59 159,-59 159,-59 153,-59 147,-53 147,-47 147,-47 147,-35 147,-35 147,-29 153,-23 159,-23 159,-23 224,-23 224,-23 230,-23 236,-29 236,-35 236,-35 236,-47 236,-47 236,-53 230,-59 224,-59" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="10.00" text-anchor="middle" x="191.5" y="-38.5">Intervalo tREFI</text>
+</g>
+<!-- A&#45;&gt;B -->
+<g class="edge" id="svg_b23a11bcbbdf1c6f54c2_edge1">
+<title>A-&gt;B</title>
+<path d="M111,-27.35C119.45,-28.81 128.17,-30.3 136.61,-31.75" fill="none" stroke="black"></path>
+<polygon fill="black" points="136.27,-35.24 146.72,-33.48 137.45,-28.34 136.27,-35.24" stroke="black"></polygon>
+</g>
+<!-- C -->
+<g class="node" id="svg_b23a11bcbbdf1c6f54c2_node3">
+<title>C</title>
+<path d="M376,-59C376,-59 284,-59 284,-59 278,-59 272,-53 272,-47 272,-47 272,-35 272,-35 272,-29 278,-23 284,-23 284,-23 376,-23 376,-23 382,-23 388,-29 388,-35 388,-35 388,-47 388,-47 388,-53 382,-59 376,-59" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="10.00" text-anchor="middle" x="330" y="-38.5">Comando de refresh</text>
+</g>
+<!-- B&#45;&gt;C -->
+<g class="edge" id="svg_b23a11bcbbdf1c6f54c2_edge2">
+<title>B-&gt;C</title>
+<path d="M236.06,-41C244.25,-41 252.99,-41 261.7,-41" fill="none" stroke="black"></path>
+<polygon fill="black" points="261.89,-44.5 271.89,-41 261.89,-37.5 261.89,-44.5" stroke="black"></polygon>
+</g>
+<!-- D -->
+<g class="node" id="svg_b23a11bcbbdf1c6f54c2_node4">
+<title>D</title>
+<path d="M516,-36C516,-36 436,-36 436,-36 430,-36 424,-30 424,-24 424,-24 424,-12 424,-12 424,-6 430,0 436,0 436,0 516,0 516,0 522,0 528,-6 528,-12 528,-12 528,-24 528,-24 528,-30 522,-36 516,-36" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="10.00" text-anchor="middle" x="476" y="-21">Memória ocupada</text>
+<text font-family="DejaVu Sans" font-size="10.00" text-anchor="middle" x="476" y="-10">por tRFC</text>
+</g>
+<!-- C&#45;&gt;D -->
+<g class="edge" id="svg_b23a11bcbbdf1c6f54c2_edge3">
+<title>C-&gt;D</title>
+<path d="M388.33,-31.84C396.78,-30.49 405.52,-29.1 414.05,-27.74" fill="none" stroke="black"></path>
+<polygon fill="black" points="414.61,-31.19 423.93,-26.16 413.5,-24.28 414.61,-31.19" stroke="black"></polygon>
+</g>
+<!-- D&#45;&gt;A -->
+<g class="edge" id="svg_b23a11bcbbdf1c6f54c2_edge4">
+<title>D-&gt;A</title>
+<path d="M423.95,-15.26C412.15,-14.74 399.64,-14.27 388,-14 280.92,-11.54 254.08,-11.63 147,-14 138.64,-14.18 129.84,-14.47 121.16,-14.79" fill="none" stroke="black"></path>
+<polygon fill="black" points="120.9,-11.3 111.04,-15.2 121.18,-18.3 120.9,-11.3" stroke="black"></polygon>
+</g>
+</g>
+</svg>
+<figcaption>
+Refresh
+</figcaption>
+</figure><h2 id="trefi">tREFI</h2><ul>
+<li>define o intervalo médio entre refreshes;</li>
+<li>valor maior reduz a frequência dos refreshes;</li>
+<li>pode melhorar desempenho;</li>
+<li>reduz margem térmica e de retenção de carga.</li>
+</ul><p>Em muitas plataformas AMD AM4, o BIOS não expõe ajuste direto de
+tREFI. Não presuma que ele esteja disponível.</p><h2 id="trfc">tRFC</h2><ul>
+<li>define por quanto tempo a DRAM permanece ocupada durante um
+refresh;</li>
+<li>menor pode reduzir pausas e melhorar desempenho;</li>
+<li>o mínimo varia fortemente por IC, densidade, temperatura e
+frequência.</li>
+</ul><h2 id="temperatura">Temperatura</h2><p>Não existe uma tabela universal em que “60 °C danifica toda DDR4”.
+Componentes DDR4 possuem diferentes classes de temperatura operacional.
+Porém, um perfil agressivo pode ficar instável muito antes do limite
+físico do chip.</p><h3 id="o-que-realmente-deve-ser-observado">O que realmente deve ser
+observado</h3><ul>
+<li>erro aparece apenas após aquecimento;</li>
+<li>perfil passa com gabinete aberto e falha fechado;</li>
+<li>tREFI alto falha no verão;</li>
+<li>GPU aquece a região dos DIMMs durante jogos;</li>
+<li>sensor do módulo, quando existente, não representa necessariamente o
+ponto mais quente de todos os chips.</li>
+</ul><h3 id="teste-térmico-correto">Teste térmico correto</h3><ol type="1">
+<li>valide com o gabinete fechado;</li>
+<li>aqueça a GPU ou use a carga real que mais aquece o sistema;</li>
+<li>repita o teste de memória;</li>
+<li>mantenha margem abaixo do ponto em que surgem erros.</li>
+</ol></section><section class="chapter" data-search="8. ics: os chips reais da
+memória" data-title="8. ICs: os chips reais da
+memória"><span class="chapter-kicker">Seção 08</span><h1 id="ics-os-chips-reais-da-memória">8. ICs: os chips reais da
+memória<a aria-label="Copiar link desta seção" class="heading-anchor" href="#ics-os-chips-reais-da-memória" title="Link direto">#</a></h1><h2 id="o-que-é-um-ic">8.1 O que é um IC</h2><p>IC, die ou revisão é o chip DRAM soldado no módulo. O nome da marca
+do DIMM não determina sozinho o comportamento. Um mesmo SKU pode mudar
+de IC entre lotes.</p><h3 id="notação-comunitária">Notação comunitária</h3><pre class="text"><code>S8B = Samsung 8 Gb B-die
+H8C = Hynix 8 Gb CJR
+H8D = Hynix 8 Gb DJR
+M8E = Micron 8 Gb Rev. E
+M16B = Micron 16 Gb Rev. B</code></pre><p>Essa notação é prática, mas não é uma nomenclatura oficial
+universal.</p><h2 id="tabela-de-comportamento-típico">8.2 Tabela de comportamento
+típico</h2><blockquote class="callout warning"><span class="callout-label">Importante</span>
+<p><strong>Importante:</strong> esta tabela descreve tendências
+observadas pela comunidade. Não substitui teste do seu exemplar.</p>
+</blockquote><div aria-label="Tabela com rolagem horizontal" class="table-scroll" role="region"><table style="width:100%;">
+<colgroup>
+<col style="width: 16%"/>
+<col style="width: 16%"/>
+<col style="width: 16%"/>
+<col style="width: 16%"/>
+<col style="width: 16%"/>
+<col style="width: 16%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>IC comum</th>
+<th>Característica dominante</th>
+<th>tRCD/tRP com tensão</th>
+<th>tRFC</th>
+<th>Sensibilidade térmica</th>
+<th>Confiança</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Samsung 8 Gb B-die</td>
+<td>timings muito apertados</td>
+<td>costuma escalar</td>
+<td>muito baixo</td>
+<td>alta em perfis apertados</td>
+<td>alta</td>
+</tr>
+<tr class="even">
+<td>Hynix 8 Gb DJR</td>
+<td>frequência alta</td>
+<td>pouco scaling</td>
+<td>médio/alto</td>
+<td>moderada</td>
+<td>alta</td>
+</tr>
+<tr class="odd">
+<td>Hynix 8 Gb CJR</td>
+<td>bom custo e frequência</td>
+<td>pouco scaling</td>
+<td>médio/alto</td>
+<td>moderada</td>
+<td>alta</td>
+</tr>
+<tr class="even">
+<td>Micron 8 Gb Rev. E</td>
+<td>frequência alta, tRCD mais solto</td>
+<td>pouco scaling</td>
+<td>alto</td>
+<td>geralmente menor que B-die</td>
+<td>alta</td>
+</tr>
+<tr class="odd">
+<td>Micron 16 Gb Rev. B</td>
+<td>alta densidade e frequência</td>
+<td>depende do bin</td>
+<td>variável</td>
+<td>variável</td>
+<td>moderada</td>
+</tr>
+<tr class="even">
+<td>Samsung 8 Gb C-die</td>
+<td>comum em kits econômicos</td>
+<td>pode escalar negativamente</td>
+<td>alto</td>
+<td>variável</td>
+<td>moderada</td>
+</tr>
+<tr class="odd">
+<td>Hynix AFR/MFR</td>
+<td>geração mais antiga</td>
+<td>limitado</td>
+<td>alto</td>
+<td>variável</td>
+<td>moderada</td>
+</tr>
+<tr class="even">
+<td>Nanya diversas revisões</td>
+<td>comportamento muito variável</td>
+<td>variável</td>
+<td>variável</td>
+<td>variável</td>
+<td>baixa/moderada</td>
+</tr>
+</tbody>
+</table></div><h2 id="samsung-8-gb-b-die">8.3 Samsung 8 Gb B-die</h2><p>Pontos típicos:</p><ul>
+<li>aceita tCL, tRCD e tRP relativamente apertados;</li>
+<li>costuma responder à tensão melhor que outros ICs;</li>
+<li>permite tRFC baixo;</li>
+<li>perde margem conforme aquece, especialmente com tREFI alto;</li>
+<li>bin baixo continua sendo bin baixo: nem todo B-die faz 3600
+CL14.</li>
+</ul><p>Não transforme “B-die tolera tensão” em licença para usar tensão
+extrema diariamente. Refrigeração e bin importam.</p><h2 id="hynix-cjr-e-djr">8.4 Hynix CJR e DJR</h2><p>Pontos típicos:</p><ul>
+<li>bons para frequência elevada;</li>
+<li>tCL responde melhor que tRCD/tRP;</li>
+<li>tRCD e tRP geralmente precisam aumentar com frequência;</li>
+<li>DJR tende a atingir frequências mais altas;</li>
+<li>existe variação significativa entre módulos.</li>
+</ul><h2 id="micron-rev.-e">8.5 Micron Rev. E</h2><p>Pontos típicos:</p><ul>
+<li>excelente para frequência com custo-benefício;</li>
+<li>tCL pode apertar com tensão;</li>
+<li>tRCD normalmente permanece mais alto que em B-die;</li>
+<li>tRFC não costuma ficar tão baixo;</li>
+<li>não copie tabela de B-die.</li>
+</ul><h2 id="micron-16-gb-rev.-b">8.6 Micron 16 Gb Rev. B</h2><p>Não confunda com Micron 8 Gb Rev. B. Densidades diferentes podem ter
+comportamento muito diferente. Avalie o módulo, o bin e a organização
+física.</p><h2 id="samsung-c-die">8.7 Samsung C-die</h2><p>É frequentemente confundido com B-die em módulos de especificação
+parecida.</p><p>Sinais comuns:</p><ul>
+<li>pouco benefício com tensão elevada;</li>
+<li>alguns exemplares pioram acima de uma faixa relativamente
+baixa;</li>
+<li>tRFC geralmente mais alto;</li>
+<li>priorize frequência razoável e tensão moderada.</li>
+</ul><h2 id="não-use-um-ranking-absoluto">8.8 Não use um ranking
+absoluto</h2><p>“Melhor IC” depende do objetivo:</p><div aria-label="Tabela com rolagem horizontal" class="table-scroll" role="region"><table>
+<thead>
+<tr class="header">
+<th>Objetivo</th>
+<th>ICs frequentemente favoráveis</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>timings extremamente baixos</td>
+<td>Samsung B-die bem binado</td>
+</tr>
+<tr class="even">
+<td>frequência alta</td>
+<td>DJR, Micron Rev. E, M16B, B-die conforme bin</td>
+</tr>
+<tr class="odd">
+<td>2 × 16 GB</td>
+<td>M16B, B-die dual rank e outras revisões conforme kit</td>
+</tr>
+<tr class="even">
+<td>baixo custo</td>
+<td>CJR, Rev. E usado, kits JEDEC com bom bin</td>
+</tr>
+</tbody>
+</table></div></section><section class="chapter" data-search="9. como identificar o ic
+sem adivinhar" data-title="9. Como identificar o IC
+sem adivinhar"><span class="chapter-kicker">Seção 09</span><h1 id="como-identificar-o-ic-sem-adivinhar">9. Como identificar o IC
+sem adivinhar<a aria-label="Copiar link desta seção" class="heading-anchor" href="#como-identificar-o-ic-sem-adivinhar" title="Link direto">#</a></h1><figure class="diagram" data-diagram="6">
+<svg alt="Identificar Ic" aria-label="Identificar Ic" id="svg_1da0880a74552e1332bd" preserveAspectRatio="xMidYMid meet" role="img" viewbox="0.00 0.00 329.00 573.00">
+<g class="graph" id="svg_1da0880a74552e1332bd_graph0" transform="scale(1 1) rotate(0) translate(18 555)">
+<title>G</title>
+<!-- A -->
+<g class="node" id="svg_1da0880a74552e1332bd_node1">
+<title>A</title>
+<path d="M197,-537C197,-537 133,-537 133,-537 127,-537 121,-531 121,-525 121,-525 121,-513 121,-513 121,-507 127,-501 133,-501 133,-501 197,-501 197,-501 203,-501 209,-507 209,-513 209,-513 209,-525 209,-525 209,-531 203,-537 197,-537" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="165" y="-516.8">Tenho o módulo</text>
+</g>
+<!-- B -->
+<g class="node" id="svg_1da0880a74552e1332bd_node2">
+<title>B</title>
+<path d="M153.25,-467.56C153.25,-467.56 90.15,-454.44 90.15,-454.44 84.28,-453.22 84.28,-450.78 90.15,-449.56 90.15,-449.56 153.25,-436.44 153.25,-436.44 159.13,-435.22 170.87,-435.22 176.75,-436.44 176.75,-436.44 239.85,-449.56 239.85,-449.56 245.72,-450.78 245.72,-453.22 239.85,-454.44 239.85,-454.44 176.75,-467.56 176.75,-467.56 170.87,-468.78 159.13,-468.78 153.25,-467.56" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="165" y="-449.8">Part number exato?</text>
+</g>
+<!-- A&#45;&gt;B -->
+<g class="edge" id="svg_1da0880a74552e1332bd_edge1">
+<title>A-&gt;B</title>
+<path d="M165,-500.92C165,-494.7 165,-487.5 165,-480.6" fill="none" stroke="black"></path>
+<polygon fill="black" points="168.5,-480.19 165,-470.19 161.5,-480.19 168.5,-480.19" stroke="black"></polygon>
+</g>
+<!-- C -->
+<g class="node" id="svg_1da0880a74552e1332bd_node3">
+<title>C</title>
+<path d="M151,-395C151,-395 35,-395 35,-395 29,-395 23,-389 23,-383 23,-383 23,-371 23,-371 23,-365 29,-359 35,-359 35,-359 151,-359 151,-359 157,-359 163,-365 163,-371 163,-371 163,-383 163,-383 163,-389 157,-395 151,-395" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="93" y="-379.8">Pesquisar bancos e reviews</text>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="93" y="-369.8">do mesmo lote</text>
+</g>
+<!-- B&#45;&gt;C -->
+<g class="edge" id="svg_1da0880a74552e1332bd_edge2">
+<title>B-&gt;C</title>
+<path d="M150.78,-436.58C141.16,-426.83 128.23,-413.72 117.03,-402.37" fill="none" stroke="black"></path>
+<polygon fill="black" points="119.5,-399.88 109.98,-395.22 114.51,-404.8 119.5,-399.88" stroke="black"></polygon>
+<text font-family="DejaVu Sans" font-size="8.00" text-anchor="middle" x="143" y="-412.6"> Sim</text>
+</g>
+<!-- D -->
+<g class="node" id="svg_1da0880a74552e1332bd_node4">
+<title>D</title>
+<path d="M281,-395C281,-395 197,-395 197,-395 191,-395 185,-389 185,-383 185,-383 185,-371 185,-371 185,-365 191,-359 197,-359 197,-359 281,-359 281,-359 287,-359 293,-365 293,-371 293,-371 293,-383 293,-383 293,-389 287,-395 281,-395" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="239" y="-379.8">Ler SPD: HWiNFO,</text>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="239" y="-369.8">CPU-Z ou Thaiphoon</text>
+</g>
+<!-- B&#45;&gt;D -->
+<g class="edge" id="svg_1da0880a74552e1332bd_edge3">
+<title>B-&gt;D</title>
+<path d="M179.27,-436.92C189.19,-427.14 202.67,-413.84 214.32,-402.35" fill="none" stroke="black"></path>
+<polygon fill="black" points="216.99,-404.63 221.65,-395.12 212.07,-399.65 216.99,-404.63" stroke="black"></polygon>
+<text font-family="DejaVu Sans" font-size="8.00" text-anchor="middle" x="215.5" y="-412.6"> Não</text>
+</g>
+<!-- E -->
+<g class="node" id="svg_1da0880a74552e1332bd_node5">
+<title>E</title>
+<path d="M153.23,-325.67C153.23,-325.67 86.01,-312.33 86.01,-312.33 80.12,-311.17 80.12,-308.83 86.01,-307.67 86.01,-307.67 153.23,-294.33 153.23,-294.33 159.11,-293.17 170.89,-293.17 176.77,-294.33 176.77,-294.33 243.99,-307.67 243.99,-307.67 249.88,-308.83 249.88,-311.17 243.99,-312.33 243.99,-312.33 176.77,-325.67 176.77,-325.67 170.89,-326.83 159.11,-326.83 153.23,-325.67" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="165" y="-307.8">Código físico do lote?</text>
+</g>
+<!-- C&#45;&gt;E -->
+<g class="edge" id="svg_1da0880a74552e1332bd_edge4">
+<title>C-&gt;E</title>
+<path d="M111.92,-358.92C121.03,-350.69 132.05,-340.75 141.68,-332.06" fill="none" stroke="black"></path>
+<polygon fill="black" points="144.29,-334.41 149.37,-325.11 139.6,-329.22 144.29,-334.41" stroke="black"></polygon>
+</g>
+<!-- D&#45;&gt;E -->
+<g class="edge" id="svg_1da0880a74552e1332bd_edge5">
+<title>D-&gt;E</title>
+<path d="M219.56,-358.92C210.1,-350.61 198.64,-340.55 188.68,-331.8" fill="none" stroke="black"></path>
+<polygon fill="black" points="190.89,-329.08 181.07,-325.11 186.27,-334.34 190.89,-329.08" stroke="black"></polygon>
+</g>
+<!-- F -->
+<g class="node" id="svg_1da0880a74552e1332bd_node6">
+<title>F</title>
+<path d="M164.5,-253C164.5,-253 63.5,-253 63.5,-253 57.5,-253 51.5,-247 51.5,-241 51.5,-241 51.5,-229 51.5,-229 51.5,-223 57.5,-217 63.5,-217 63.5,-217 164.5,-217 164.5,-217 170.5,-217 176.5,-223 176.5,-229 176.5,-229 176.5,-241 176.5,-241 176.5,-247 170.5,-253 164.5,-253" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="114" y="-237.8">Decodificar com fonte</text>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="114" y="-227.8">específica do fabricante</text>
+</g>
+<!-- E&#45;&gt;F -->
+<g class="edge" id="svg_1da0880a74552e1332bd_edge6">
+<title>E-&gt;F</title>
+<path d="M154.43,-293.87C147.89,-284.52 139.33,-272.26 131.77,-261.44" fill="none" stroke="black"></path>
+<polygon fill="black" points="134.58,-259.35 125.98,-253.15 128.84,-263.35 134.58,-259.35" stroke="black"></polygon>
+<text font-family="DejaVu Sans" font-size="8.00" text-anchor="middle" x="152" y="-270.6"> Sim</text>
+</g>
+<!-- G -->
+<g class="node" id="svg_1da0880a74552e1332bd_node7">
+<title>G</title>
+<path d="M254,-103C254,-103 178,-103 178,-103 172,-103 166,-97 166,-91 166,-91 166,-79 166,-79 166,-73 172,-67 178,-67 178,-67 254,-67 254,-67 260,-67 266,-73 266,-79 266,-79 266,-91 266,-91 266,-97 260,-103 254,-103" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="216" y="-82.8">IC não confirmado</text>
+</g>
+<!-- E&#45;&gt;G -->
+<g class="edge" id="svg_1da0880a74552e1332bd_edge7">
+<title>E-&gt;G</title>
+<path d="M172.24,-293.12C177.02,-282.07 183.11,-266.88 187,-253 200.48,-204.88 208.84,-147.12 212.94,-113.68" fill="none" stroke="black"></path>
+<polygon fill="black" points="216.46,-113.67 214.16,-103.32 209.51,-112.84 216.46,-113.67" stroke="black"></polygon>
+<text font-family="DejaVu Sans" font-size="8.00" text-anchor="middle" x="209.5" y="-195.6"> Não</text>
+</g>
+<!-- H -->
+<g class="node" id="svg_1da0880a74552e1332bd_node8">
+<title>H</title>
+<path d="M85.26,-175.51C85.26,-175.51 23.91,-162.49 23.91,-162.49 18.04,-161.25 18.04,-158.75 23.91,-157.51 23.91,-157.51 85.26,-144.49 85.26,-144.49 91.13,-143.25 102.87,-143.25 108.74,-144.49 108.74,-144.49 170.09,-157.51 170.09,-157.51 175.96,-158.75 175.96,-161.25 170.09,-162.49 170.09,-162.49 108.74,-175.51 108.74,-175.51 102.87,-176.75 91.13,-176.75 85.26,-175.51" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="97" y="-157.8">Fontes concordam?</text>
+</g>
+<!-- F&#45;&gt;H -->
+<g class="edge" id="svg_1da0880a74552e1332bd_edge8">
+<title>F-&gt;H</title>
+<path d="M109.97,-216.7C107.95,-208.03 105.46,-197.34 103.21,-187.65" fill="none" stroke="black"></path>
+<polygon fill="black" points="106.56,-186.62 100.88,-177.67 99.74,-188.21 106.56,-186.62" stroke="black"></polygon>
+</g>
+<!-- J -->
+<g class="node" id="svg_1da0880a74552e1332bd_node10">
+<title>J</title>
+<path d="M262.5,-36C262.5,-36 169.5,-36 169.5,-36 163.5,-36 157.5,-30 157.5,-24 157.5,-24 157.5,-12 157.5,-12 157.5,-6 163.5,0 169.5,0 169.5,0 262.5,0 262.5,0 268.5,0 274.5,-6 274.5,-12 274.5,-12 274.5,-24 274.5,-24 274.5,-30 268.5,-36 262.5,-36" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="216" y="-20.8">Ajustes conservadores</text>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="216" y="-10.8">e inferência por testes</text>
+</g>
+<!-- G&#45;&gt;J -->
+<g class="edge" id="svg_1da0880a74552e1332bd_edge11">
+<title>G-&gt;J</title>
+<path d="M216,-66.92C216,-60.7 216,-53.5 216,-46.6" fill="none" stroke="black"></path>
+<polygon fill="black" points="219.5,-46.19 216,-36.19 212.5,-46.19 219.5,-46.19" stroke="black"></polygon>
+</g>
+<!-- H&#45;&gt;G -->
+<g class="edge" id="svg_1da0880a74552e1332bd_edge10">
+<title>H-&gt;G</title>
+<path d="M117.73,-146.28C134.67,-135.89 159.03,-120.95 179.26,-108.54" fill="none" stroke="black"></path>
+<polygon fill="black" points="181.24,-111.43 187.93,-103.22 177.58,-105.46 181.24,-111.43" stroke="black"></polygon>
+<text font-family="DejaVu Sans" font-size="8.00" text-anchor="middle" x="173.5" y="-120.6"> Não</text>
+</g>
+<!-- I -->
+<g class="node" id="svg_1da0880a74552e1332bd_node9">
+<title>I</title>
+<path d="M132,-103C132,-103 12,-103 12,-103 6,-103 0,-97 0,-91 0,-91 0,-79 0,-79 0,-73 6,-67 12,-67 12,-67 132,-67 132,-67 138,-67 144,-73 144,-79 144,-79 144,-91 144,-91 144,-97 138,-103 132,-103" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="72" y="-82.8">Confiança alta ou moderada</text>
+</g>
+<!-- H&#45;&gt;I -->
+<g class="edge" id="svg_1da0880a74552e1332bd_edge9">
+<title>H-&gt;I</title>
+<path d="M91.45,-142.8C88.43,-133.98 84.62,-122.84 81.17,-112.76" fill="none" stroke="black"></path>
+<polygon fill="black" points="84.43,-111.5 77.88,-103.17 77.81,-113.77 84.43,-111.5" stroke="black"></polygon>
+<text font-family="DejaVu Sans" font-size="8.00" text-anchor="middle" x="95" y="-120.6"> Sim</text>
+</g>
+</g>
+</svg>
+<figcaption>
+Identificar Ic
+</figcaption>
+</figure><h2 id="níveis-de-confiança">Níveis de confiança</h2><h3 id="alta">Alta</h3><ul>
+<li>marcação física do chip lida diretamente;</li>
+<li>part number de componente confirmado por datasheet;</li>
+<li>código de lote validado por várias fontes independentes.</li>
+</ul><h3 id="moderada">Moderada</h3><ul>
+<li>SPD identifica fabricante e revisão plausíveis;</li>
+<li>código de etiqueta conhecido, mas sujeito a mudança de lote;</li>
+<li>vários usuários do mesmo lote confirmam.</li>
+</ul><h3 id="baixa">Baixa</h3><ul>
+<li>inferência apenas pelo XMP;</li>
+<li>“é CL14, então é B-die”;</li>
+<li>comportamento de tensão usado como única prova;</li>
+<li>nome comercial do kit sem código de lote.</li>
+</ul><h2 id="sobre-thaiphoon-burner">Sobre Thaiphoon Burner</h2><p>Ele lê o SPD, mas o SPD pode:</p><ul>
+<li>omitir revisão;</li>
+<li>usar identificação genérica;</li>
+<li>ser programado pelo montador do módulo;</li>
+<li>não revelar troca de IC entre lotes.</li>
+</ul><p>Use-o como evidência, não como verdade absoluta.</p><h2 id="códigos-corsair-g.skill-e-kingston">Códigos Corsair, G.Skill e
+Kingston</h2><p>Existem sistemas comunitários para interpretar versões Corsair e
+códigos 042 da G.Skill. Eles são úteis, mas o fabricante pode alterar
+convenções. Para Kingston, códigos DPM encontrados em guias antigos são
+particularmente fáceis de interpretar de forma errada.</p><p><strong>Regra:</strong> nunca publique uma decodificação sem citar a
+fonte específica daquele formato e explicar os caracteres que
+sobraram.</p></section><section class="chapter" data-search="10. placa-mãe, topologia e
+treinamento" data-title="10. Placa-mãe, topologia e
+treinamento"><span class="chapter-kicker">Seção 10</span><h1 id="placa-mãe-topologia-e-treinamento">10. Placa-mãe, topologia e
+treinamento<a aria-label="Copiar link desta seção" class="heading-anchor" href="#placa-mãe-topologia-e-treinamento" title="Link direto">#</a></h1><h2 id="daisy-chain">10.1 Daisy chain</h2><pre class="text"><code>IMC ─── slot mais próximo ─── slot de terminação</code></pre><p>Geralmente favorece um DIMM por canal, normalmente nos slots
+A2/B2.</p><h2 id="t-topology">10.2 T-topology</h2><pre class="text"><code>                 ┌── slot 1
+IMC ─── divisão ─┤
+                 └── slot 2</code></pre><p>Busca equilibrar o comprimento dos caminhos para dois DIMMs por
+canal.</p><h2 id="não-existe-um-corte-mágico-em-4000-mts">10.3 Não existe um corte
+mágico em 4000 MT/s</h2><p>O impacto da topologia cresce com a taxa de sinal, quantidade de
+DIMMs, ranks e qualidade do PCB. “Só importa acima de DDR4-4000” é uma
+simplificação, não uma lei.</p><h2 id="treinamento-de-memória">10.4 Treinamento de memória</h2><p>Durante o boot, o firmware ajusta parâmetros elétricos e
+temporais:</p><ul>
+<li>impedâncias e ODT;</li>
+<li>delays de leitura/escrita;</li>
+<li>RTL/IOL em Intel;</li>
+<li>CAD_BUS, RTT e ProcODT em AMD;</li>
+<li>margens por canal e rank.</li>
+</ul><p>Um perfil pode:</p><ul>
+<li>iniciar em boot quente e falhar a frio;</li>
+<li>treinar valores diferentes a cada boot;</li>
+<li>apresentar desempenho variável;</li>
+<li>precisar de mais tempo de POST.</li>
+</ul><h3 id="como-detectar-treinamento-inconsistente">Como detectar
+treinamento inconsistente</h3><ol type="1">
+<li>execute cinco boots frios;</li>
+<li>registre timings treinados em cada boot;</li>
+<li>execute o mesmo benchmark três vezes após cada boot;</li>
+<li>procure variação anormal de latência ou bandwidth;</li>
+<li>não use Fast Boot até finalizar o ajuste.</li>
+</ol></section><section class="chapter" data-search="11. controlador de memória
+e plataformas" data-title="11. Controlador de memória
+e plataformas"><span class="chapter-kicker">Seção 11</span><h1 id="controlador-de-memória-e-plataformas">11. Controlador de memória
+e plataformas<a aria-label="Copiar link desta seção" class="heading-anchor" href="#controlador-de-memória-e-plataformas" title="Link direto">#</a></h1></section><section class="chapter" data-search="11.1 intel ddr4 antes do gear
+mode" data-title="11.1 Intel DDR4 antes do Gear
+Mode"><span class="chapter-kicker">Seção 12</span><h1 id="intel-ddr4-antes-do-gear-mode">11.1 Intel DDR4 antes do Gear
+Mode<a aria-label="Copiar link desta seção" class="heading-anchor" href="#intel-ddr4-antes-do-gear-mode" title="Link direto">#</a></h1><p>Em plataformas derivadas de Skylake, os principais controles do IMC
+costumam incluir:</p><ul>
+<li><strong>VCCSA:</strong> System Agent;</li>
+<li><strong>VCCIO:</strong> I/O do controlador, com nomenclatura
+variável;</li>
+<li><strong>DRAM Voltage:</strong> tensão do módulo;</li>
+<li>command rate e treinamento RTL/IOL.</li>
+</ul><h3 id="ponto-de-partida-comunitário-conservador">Ponto de partida
+comunitário conservador</h3><p>Para dois módulos single rank, muitos sistemas começam próximos
+de:</p><pre class="text"><code>VCCSA: 1,10–1,20 V
+VCCIO: 1,05–1,15 V
+DRAM: tensão XMP ou 1,35 V
+CR: 2T durante a busca de frequência</code></pre><p>Esses são <strong>pontos de partida</strong>, não limites garantidos.
+Gerações, placas e sensores diferem. Meça a tensão real e não deixe Auto
+aplicar valores excessivos sem verificação.</p></section><section class="chapter" data-search="11.2 intel gear 1 e gear 2" data-title="11.2 Intel Gear 1 e Gear 2"><span class="chapter-kicker">Seção 13</span><h1 id="intel-gear-1-e-gear-2">11.2 Intel Gear 1 e Gear 2<a aria-label="Copiar link desta seção" class="heading-anchor" href="#intel-gear-1-e-gear-2" title="Link direto">#</a></h1><p>Em plataformas Intel mais recentes:</p><figure class="diagram" data-diagram="7">
+<svg alt="Gears Intel" aria-label="Gears Intel" id="svg_2501037f0750dc97649b" preserveAspectRatio="xMidYMid meet" role="img" viewbox="0.00 0.00 440.00 126.00">
+<g class="graph" id="svg_2501037f0750dc97649b_graph0" transform="scale(1 1) rotate(0) translate(18 108)">
+<title>G</title>
+<!-- G1 -->
+<g class="node" id="svg_2501037f0750dc97649b_node1">
+<title>G1</title>
+<path d="M42,-36C42,-36 12,-36 12,-36 6,-36 0,-30 0,-24 0,-24 0,-12 0,-12 0,-6 6,0 12,0 12,0 42,0 42,0 48,0 54,-6 54,-12 54,-12 54,-24 54,-24 54,-30 48,-36 42,-36" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="10.00" text-anchor="middle" x="27" y="-15.5">Gear 1</text>
+</g>
+<!-- G1A -->
+<g class="node" id="svg_2501037f0750dc97649b_node2">
+<title>G1A</title>
+<path d="M216,-36C216,-36 102,-36 102,-36 96,-36 90,-30 90,-24 90,-24 90,-12 90,-12 90,-6 96,0 102,0 102,0 216,0 216,0 222,0 228,-6 228,-12 228,-12 228,-24 228,-24 228,-30 222,-36 216,-36" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="10.00" text-anchor="middle" x="159" y="-21">Controlador sincronizado</text>
+<text font-family="DejaVu Sans" font-size="10.00" text-anchor="middle" x="159" y="-10">ao clock da DRAM</text>
+</g>
+<!-- G1&#45;&gt;G1A -->
+<g class="edge" id="svg_2501037f0750dc97649b_edge1">
+<title>G1-&gt;G1A</title>
+<path d="M54.31,-18C61.85,-18 70.49,-18 79.5,-18" fill="none" stroke="black"></path>
+<polygon fill="black" points="79.78,-21.5 89.78,-18 79.78,-14.5 79.78,-21.5" stroke="black"></polygon>
+</g>
+<!-- G1B -->
+<g class="node" id="svg_2501037f0750dc97649b_node3">
+<title>G1B</title>
+<path d="M392,-36C392,-36 276,-36 276,-36 270,-36 264,-30 264,-24 264,-24 264,-12 264,-12 264,-6 270,0 276,0 276,0 392,0 392,0 398,0 404,-6 404,-12 404,-12 404,-24 404,-24 404,-30 398,-36 392,-36" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="10.00" text-anchor="middle" x="334" y="-21">Menor latência</text>
+<text font-family="DejaVu Sans" font-size="10.00" text-anchor="middle" x="334" y="-10">teto de frequência menor</text>
+</g>
+<!-- G1A&#45;&gt;G1B -->
+<g class="edge" id="svg_2501037f0750dc97649b_edge2">
+<title>G1A-&gt;G1B</title>
+<path d="M228.37,-18C236.7,-18 245.26,-18 253.73,-18" fill="none" stroke="black"></path>
+<polygon fill="black" points="253.99,-21.5 263.99,-18 253.99,-14.5 253.99,-21.5" stroke="black"></polygon>
+</g>
+<!-- G2 -->
+<g class="node" id="svg_2501037f0750dc97649b_node4">
+<title>G2</title>
+<path d="M42,-90C42,-90 12,-90 12,-90 6,-90 0,-84 0,-78 0,-78 0,-66 0,-66 0,-60 6,-54 12,-54 12,-54 42,-54 42,-54 48,-54 54,-60 54,-66 54,-66 54,-78 54,-78 54,-84 48,-90 42,-90" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="10.00" text-anchor="middle" x="27" y="-69.5">Gear 2</text>
+</g>
+<!-- G2A -->
+<g class="node" id="svg_2501037f0750dc97649b_node5">
+<title>G2A</title>
+<path d="M202,-90C202,-90 116,-90 116,-90 110,-90 104,-84 104,-78 104,-78 104,-66 104,-66 104,-60 110,-54 116,-54 116,-54 202,-54 202,-54 208,-54 214,-60 214,-66 214,-66 214,-78 214,-78 214,-84 208,-90 202,-90" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="10.00" text-anchor="middle" x="159" y="-75">Controlador em</text>
+<text font-family="DejaVu Sans" font-size="10.00" text-anchor="middle" x="159" y="-64">proporção reduzida</text>
+</g>
+<!-- G2&#45;&gt;G2A -->
+<g class="edge" id="svg_2501037f0750dc97649b_edge3">
+<title>G2-&gt;G2A</title>
+<path d="M54.31,-72C65.77,-72 79.76,-72 93.7,-72" fill="none" stroke="black"></path>
+<polygon fill="black" points="93.81,-75.5 103.81,-72 93.81,-68.5 93.81,-75.5" stroke="black"></polygon>
+</g>
+<!-- G2B -->
+<g class="node" id="svg_2501037f0750dc97649b_node6">
+<title>G2B</title>
+<path d="M386,-90C386,-90 282,-90 282,-90 276,-90 270,-84 270,-78 270,-78 270,-66 270,-66 270,-60 276,-54 282,-54 282,-54 386,-54 386,-54 392,-54 398,-60 398,-66 398,-66 398,-78 398,-78 398,-84 392,-90 386,-90" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="10.00" text-anchor="middle" x="334" y="-75">Maior frequência</text>
+<text font-family="DejaVu Sans" font-size="10.00" text-anchor="middle" x="334" y="-64">penalidade de latência</text>
+</g>
+<!-- G2A&#45;&gt;G2B -->
+<g class="edge" id="svg_2501037f0750dc97649b_edge4">
+<title>G2A-&gt;G2B</title>
+<path d="M214.26,-72C228.59,-72 244.3,-72 259.47,-72" fill="none" stroke="black"></path>
+<polygon fill="black" points="259.86,-75.5 269.86,-72 259.86,-68.5 259.86,-75.5" stroke="black"></polygon>
+</g>
+</g>
+</svg>
+<figcaption>
+Gears Intel
+</figcaption>
+</figure><p>Não compare 3600 Gear 1 e 4400 Gear 2 apenas pela frequência. Meça
+latência, bandwidth e desempenho real.</p><p>Em Alder Lake e derivados:</p><ul>
+<li>alguns processadores não-K possuem limitações de System Agent;</li>
+<li>VCCIO tradicional pode não existir da mesma forma;</li>
+<li>VDDQ TX e outras tensões passam a importar;</li>
+<li>use guia específico da geração e placa-mãe.</li>
+</ul></section><section class="chapter" data-search="11.3 amd zen e zen+" data-title="11.3 AMD Zen e Zen+"><span class="chapter-kicker">Seção 14</span><h1 id="amd-zen-e-zen">11.3 AMD Zen e Zen+<a aria-label="Copiar link desta seção" class="heading-anchor" href="#amd-zen-e-zen" title="Link direto">#</a></h1><p>Nas primeiras gerações Ryzen, o fabric acompanha o clock de memória
+de forma mais diretamente e o IMC é mais sensível a:</p><ul>
+<li>quantidade de ranks;</li>
+<li>BIOS/AGESA;</li>
+<li>ProcODT;</li>
+<li>frequência acima de 3200–3466;</li>
+<li>módulos antigos ou quatro DIMMs.</li>
+</ul><p>Não use automaticamente valores de Zen 3 em Zen 1.</p></section><section class="chapter" data-search="11.4 amd zen 2 e zen 3:
+mclk, uclk e fclk" data-title="11.4 AMD Zen 2 e Zen 3:
+MCLK, UCLK e FCLK"><span class="chapter-kicker">Seção 15</span><h1 id="amd-zen-2-e-zen-3-mclk-uclk-e-fclk">11.4 AMD Zen 2 e Zen 3:
+MCLK, UCLK e FCLK<a aria-label="Copiar link desta seção" class="heading-anchor" href="#amd-zen-2-e-zen-3-mclk-uclk-e-fclk" title="Link direto">#</a></h1><p>Definições:</p><ul>
+<li><strong>taxa DDR:</strong> 3600 MT/s, por exemplo;</li>
+<li><strong>MCLK:</strong> clock físico da memória, 1800 MHz em
+DDR4-3600;</li>
+<li><strong>UCLK:</strong> clock do controlador;</li>
+<li><strong>FCLK:</strong> clock do Infinity Fabric.</li>
+</ul><figure class="diagram" data-diagram="8">
+<svg alt="Sync Amd" aria-label="Sync Amd" id="svg_1860d0497293d9d4ff14" preserveAspectRatio="xMidYMid meet" role="img" viewbox="0.00 0.00 670.00 72.00">
+<g class="graph" id="svg_1860d0497293d9d4ff14_graph0" transform="scale(1 1) rotate(0) translate(18 54)">
+<title>G</title>
+<!-- DDR -->
+<g class="node" id="svg_1860d0497293d9d4ff14_node1">
+<title>DDR</title>
+<path d="M86,-36C86,-36 12,-36 12,-36 6,-36 0,-30 0,-24 0,-24 0,-12 0,-12 0,-6 6,0 12,0 12,0 86,0 86,0 92,0 98,-6 98,-12 98,-12 98,-24 98,-24 98,-30 92,-36 86,-36" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="10.00" text-anchor="middle" x="49" y="-15.5">DDR4-3600 MT/s</text>
+</g>
+<!-- M -->
+<g class="node" id="svg_1860d0497293d9d4ff14_node2">
+<title>M</title>
+<path d="M218,-36C218,-36 146,-36 146,-36 140,-36 134,-30 134,-24 134,-24 134,-12 134,-12 134,-6 140,0 146,0 146,0 218,0 218,0 224,0 230,-6 230,-12 230,-12 230,-24 230,-24 230,-30 224,-36 218,-36" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="10.00" text-anchor="middle" x="182" y="-15.5">MCLK 1800 MHz</text>
+</g>
+<!-- DDR&#45;&gt;M -->
+<g class="edge" id="svg_1860d0497293d9d4ff14_edge1">
+<title>DDR-&gt;M</title>
+<path d="M98.04,-18C106.34,-18 115.05,-18 123.58,-18" fill="none" stroke="black"></path>
+<polygon fill="black" points="123.84,-21.5 133.84,-18 123.84,-14.5 123.84,-21.5" stroke="black"></polygon>
+</g>
+<!-- U -->
+<g class="node" id="svg_1860d0497293d9d4ff14_node3">
+<title>U</title>
+<path d="M349,-36C349,-36 278,-36 278,-36 272,-36 266,-30 266,-24 266,-24 266,-12 266,-12 266,-6 272,0 278,0 278,0 349,0 349,0 355,0 361,-6 361,-12 361,-12 361,-24 361,-24 361,-30 355,-36 349,-36" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="10.00" text-anchor="middle" x="313.5" y="-15.5">UCLK 1800 MHz</text>
+</g>
+<!-- M&#45;&gt;U -->
+<g class="edge" id="svg_1860d0497293d9d4ff14_edge2">
+<title>M-&gt;U</title>
+<path d="M230.12,-18C238.35,-18 246.98,-18 255.44,-18" fill="none" stroke="black"></path>
+<polygon fill="black" points="255.63,-21.5 265.63,-18 255.63,-14.5 255.63,-21.5" stroke="black"></polygon>
+</g>
+<!-- F -->
+<g class="node" id="svg_1860d0497293d9d4ff14_node4">
+<title>F</title>
+<path d="M478,-36C478,-36 409,-36 409,-36 403,-36 397,-30 397,-24 397,-24 397,-12 397,-12 397,-6 403,0 409,0 409,0 478,0 478,0 484,0 490,-6 490,-12 490,-12 490,-24 490,-24 490,-30 484,-36 478,-36" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="10.00" text-anchor="middle" x="443.5" y="-15.5">FCLK 1800 MHz</text>
+</g>
+<!-- U&#45;&gt;F -->
+<g class="edge" id="svg_1860d0497293d9d4ff14_edge3">
+<title>U-&gt;F</title>
+<path d="M361.07,-18C369.31,-18 377.95,-18 386.42,-18" fill="none" stroke="black"></path>
+<polygon fill="black" points="386.6,-21.5 396.6,-18 386.6,-14.5 386.6,-21.5" stroke="black"></polygon>
+</g>
+<!-- S -->
+<g class="node" id="svg_1860d0497293d9d4ff14_node5">
+<title>S</title>
+<path d="M622,-36C622,-36 538,-36 538,-36 532,-36 526,-30 526,-24 526,-24 526,-12 526,-12 526,-6 532,0 538,0 538,0 622,0 622,0 628,0 634,-6 634,-12 634,-12 634,-24 634,-24 634,-30 628,-36 622,-36" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="10.00" text-anchor="middle" x="580" y="-21">Modo sincronizado</text>
+<text font-family="DejaVu Sans" font-size="10.00" text-anchor="middle" x="580" y="-10">1:1:1</text>
+</g>
+<!-- F&#45;&gt;S -->
+<g class="edge" id="svg_1860d0497293d9d4ff14_edge4">
+<title>F-&gt;S</title>
+<path d="M490.04,-18C498.25,-18 506.95,-18 515.57,-18" fill="none" stroke="black"></path>
+<polygon fill="black" points="515.61,-21.5 525.61,-18 515.61,-14.5 515.61,-21.5" stroke="black"></polygon>
+</g>
+</g>
+</svg>
+<figcaption>
+Sync Amd
+</figcaption>
+</figure><p>A expressão correta para o caso acima é:</p><pre class="text"><code>MCLK = UCLK = FCLK = 1800 MHz
+Taxa DDR = 2 × MCLK = 3600 MT/s</code></pre><p>Não diga “FCLK = MCLK/2” quando MCLK já significa clock físico. O que
+é metade de 3600 é o MCLK de 1800.</p><h3 id="faixas-comuns-não-garantias">Faixas comuns, não garantias</h3><ul>
+<li>DDR4-3600 / FCLK 1800 é um alvo comum em Zen 2/3;</li>
+<li>DDR4-3800 / FCLK 1900 depende do exemplar;</li>
+<li>FCLK 2000 está longe de ser garantido;</li>
+<li>modo assíncrono pode permitir frequência maior, mas adiciona
+latência.</li>
+</ul><h3 id="tensões-amd">Tensões AMD</h3><p>Controles comuns:</p><ul>
+<li>VSOC;</li>
+<li>CLDO VDDP;</li>
+<li>VDDG CCD;</li>
+<li>VDDG IOD;</li>
+<li>DRAM Voltage.</li>
+</ul><p>Pontos iniciais usados pela comunidade em Zen 2/3 costumam ficar
+próximos de:</p><pre class="text"><code>VSOC:      1,05–1,10 V
+CLDO VDDP: 0,90–0,95 V
+VDDG CCD:  0,90–1,00 V
+VDDG IOD:  0,95–1,05 V</code></pre><p>Não existe uma hierarquia rígida que funcione em todo processador.
+Tensão excessiva pode piorar treinamento e estabilidade. Ajuste em
+passos pequenos e meça valores efetivos.</p></section><section class="chapter" data-search="12. ferramentas e preparação" data-title="12. Ferramentas e preparação"><span class="chapter-kicker">Seção 16</span><h1 id="ferramentas-e-preparação">12. Ferramentas e preparação<a aria-label="Copiar link desta seção" class="heading-anchor" href="#ferramentas-e-preparação" title="Link direto">#</a></h1><h2 id="antes-de-alterar-o-bios">12.1 Antes de alterar o BIOS</h2><ul>
+<li>faça backup;</li>
+<li>fotografe todas as páginas relevantes do BIOS;</li>
+<li>salve um perfil stock;</li>
+<li>saiba limpar CMOS;</li>
+<li>coloque os DIMMs nos slots recomendados;</li>
+<li>desative temporariamente overclock/undervolt instável da CPU;</li>
+<li>atualize BIOS apenas se houver motivo e procedimento seguro;</li>
+<li>verifique estabilidade stock antes de culpar o OC.</li>
+</ul><h2 id="ferramentas-de-leitura">12.2 Ferramentas de leitura</h2><h3 id="amd">AMD</h3><ul>
+<li>ZenTimings;</li>
+<li>HWiNFO;</li>
+<li>CPU-Z para SPD e frequência;</li>
+<li>logs de WHEA no Visualizador de Eventos.</li>
+</ul><h3 id="intel">Intel</h3><ul>
+<li>ASRock Timing Configurator compatível com a geração;</li>
+<li>MSI Dragon Ball em algumas plataformas;</li>
+<li>HWiNFO;</li>
+<li>CPU-Z.</li>
+</ul><h2 id="testes">12.3 Testes</h2><div aria-label="Tabela com rolagem horizontal" class="table-scroll" role="region"><table>
+<colgroup>
+<col style="width: 33%"/>
+<col style="width: 33%"/>
+<col style="width: 33%"/>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Ferramenta</th>
+<th>Melhor uso</th>
+<th>Limitação</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>MemTest86+ / MemTest86</td>
+<td>falhas grossas, teste fora do Windows</td>
+<td>não substitui cargas do sistema operacional</td>
+</tr>
+<tr class="even">
+<td>TM5 com perfil reconhecido</td>
+<td>DRAM e timings</td>
+<td>resultado depende da configuração usada</td>
+</tr>
+<tr class="odd">
+<td>Karhu RAM Test</td>
+<td>cobertura contínua</td>
+<td>pago</td>
+</tr>
+<tr class="even">
+<td>OCCT Memory</td>
+<td>carga configurável SSE/AVX</td>
+<td>um único preset não cobre tudo</td>
+</tr>
+<tr class="odd">
+<td>y-cruncher VT3/VST</td>
+<td>IMC, memória, CPU e fabric</td>
+<td>carga térmica alta e diagnóstico não isolado</td>
+</tr>
+<tr class="even">
+<td>Prime95 Large FFTs</td>
+<td>controlador e memória</td>
+<td>precisa configuração correta para usar muita RAM</td>
+</tr>
+<tr class="odd">
+<td>HCI/MemTestHelper</td>
+<td>cobertura paralela</td>
+<td>mais lento que opções modernas em alguns sistemas</td>
+</tr>
+</tbody>
+</table></div><h2 id="ferramentas-que-não-devem-ser-a-única-validação">12.4
+Ferramentas que não devem ser a única validação</h2><ul>
+<li>AIDA64 Memory Stress;</li>
+<li>MemTest64;</li>
+<li>benchmark do AIDA64;</li>
+<li>jogar por vinte minutos;</li>
+<li>uma passagem rápida no Windows Memory Diagnostic.</li>
+</ul><p>Benchmark mede desempenho. Não é prova de estabilidade.</p></section><section class="chapter" data-search="13. método completo de
+overclock" data-title="13. Método completo de
+overclock"><span class="chapter-kicker">Seção 17</span><h1 id="método-completo-de-overclock">13. Método completo de
+overclock<a aria-label="Copiar link desta seção" class="heading-anchor" href="#método-completo-de-overclock" title="Link direto">#</a></h1><figure class="diagram" data-diagram="9">
+<svg alt="Fluxo Completo" aria-label="Fluxo Completo" id="svg_7da8d1ca52d44ecf6fdc" preserveAspectRatio="xMidYMid meet" role="img" viewbox="0.00 0.00 336.52 836.00">
+<g class="graph" id="svg_7da8d1ca52d44ecf6fdc_graph0" transform="scale(1 1) rotate(0) translate(18 818)">
+<title>G</title>
+<!-- A -->
+<g class="node" id="svg_7da8d1ca52d44ecf6fdc_node1">
+<title>A</title>
+<path d="M223.52,-800C223.52,-800 164.52,-800 164.52,-800 158.52,-800 152.52,-794 152.52,-788 152.52,-788 152.52,-776 152.52,-776 152.52,-770 158.52,-764 164.52,-764 164.52,-764 223.52,-764 223.52,-764 229.52,-764 235.52,-770 235.52,-776 235.52,-776 235.52,-788 235.52,-788 235.52,-794 229.52,-800 223.52,-800" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="194.02" y="-779.8">Stock validado</text>
+</g>
+<!-- B -->
+<g class="node" id="svg_7da8d1ca52d44ecf6fdc_node2">
+<title>B</title>
+<path d="M249.52,-737C249.52,-737 138.52,-737 138.52,-737 132.52,-737 126.52,-731 126.52,-725 126.52,-725 126.52,-713 126.52,-713 126.52,-707 132.52,-701 138.52,-701 138.52,-701 249.52,-701 249.52,-701 255.52,-701 261.52,-707 261.52,-713 261.52,-713 261.52,-725 261.52,-725 261.52,-731 255.52,-737 249.52,-737" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="194.02" y="-716.8">Identificar plataforma e IC</text>
+</g>
+<!-- A&#45;&gt;B -->
+<g class="edge" id="svg_7da8d1ca52d44ecf6fdc_edge1">
+<title>A-&gt;B</title>
+<path d="M194.02,-763.68C194.02,-758.62 194.02,-752.95 194.02,-747.42" fill="none" stroke="black"></path>
+<polygon fill="black" points="197.53,-747.15 194.02,-737.15 190.53,-747.15 197.53,-747.15" stroke="black"></polygon>
+</g>
+<!-- C -->
+<g class="node" id="svg_7da8d1ca52d44ecf6fdc_node3">
+<title>C</title>
+<path d="M251.52,-674C251.52,-674 136.52,-674 136.52,-674 130.52,-674 124.52,-668 124.52,-662 124.52,-662 124.52,-650 124.52,-650 124.52,-644 130.52,-638 136.52,-638 136.52,-638 251.52,-638 251.52,-638 257.52,-638 263.52,-644 263.52,-650 263.52,-650 263.52,-662 263.52,-662 263.52,-668 257.52,-674 251.52,-674" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="194.02" y="-653.8">Tensão inicial conservadora</text>
+</g>
+<!-- B&#45;&gt;C -->
+<g class="edge" id="svg_7da8d1ca52d44ecf6fdc_edge2">
+<title>B-&gt;C</title>
+<path d="M194.02,-700.68C194.02,-695.62 194.02,-689.95 194.02,-684.42" fill="none" stroke="black"></path>
+<polygon fill="black" points="197.53,-684.15 194.02,-674.15 190.53,-684.15 197.53,-684.15" stroke="black"></polygon>
+</g>
+<!-- D -->
+<g class="node" id="svg_7da8d1ca52d44ecf6fdc_node4">
+<title>D</title>
+<path d="M263.02,-611C263.02,-611 125.02,-611 125.02,-611 119.02,-611 113.02,-605 113.02,-599 113.02,-599 113.02,-587 113.02,-587 113.02,-581 119.02,-575 125.02,-575 125.02,-575 263.02,-575 263.02,-575 269.02,-575 275.02,-581 275.02,-587 275.02,-587 275.02,-599 275.02,-599 275.02,-605 269.02,-611 263.02,-611" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="194.02" y="-590.8">Timings soltos e CR/GDM estável</text>
+</g>
+<!-- C&#45;&gt;D -->
+<g class="edge" id="svg_7da8d1ca52d44ecf6fdc_edge3">
+<title>C-&gt;D</title>
+<path d="M194.02,-637.68C194.02,-632.62 194.02,-626.95 194.02,-621.42" fill="none" stroke="black"></path>
+<polygon fill="black" points="197.53,-621.15 194.02,-611.15 190.53,-621.15 197.53,-621.15" stroke="black"></polygon>
+</g>
+<!-- E -->
+<g class="node" id="svg_7da8d1ca52d44ecf6fdc_node5">
+<title>E</title>
+<path d="M253.02,-548C253.02,-548 135.02,-548 135.02,-548 129.02,-548 123.02,-542 123.02,-536 123.02,-536 123.02,-524 123.02,-524 123.02,-518 129.02,-512 135.02,-512 135.02,-512 253.02,-512 253.02,-512 259.02,-512 265.02,-518 265.02,-524 265.02,-524 265.02,-536 265.02,-536 265.02,-542 259.02,-548 253.02,-548" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="194.02" y="-527.8">Subir frequência em passos</text>
+</g>
+<!-- D&#45;&gt;E -->
+<g class="edge" id="svg_7da8d1ca52d44ecf6fdc_edge4">
+<title>D-&gt;E</title>
+<path d="M194.02,-574.68C194.02,-569.62 194.02,-563.95 194.02,-558.42" fill="none" stroke="black"></path>
+<polygon fill="black" points="197.53,-558.15 194.02,-548.15 190.53,-558.15 197.53,-558.15" stroke="black"></polygon>
+</g>
+<!-- F -->
+<g class="node" id="svg_7da8d1ca52d44ecf6fdc_node6">
+<title>F</title>
+<path d="M108.16,-483.22C108.16,-483.22 11.84,-468.78 11.84,-468.78 5.91,-467.89 5.91,-466.11 11.84,-465.22 11.84,-465.22 108.16,-450.78 108.16,-450.78 114.09,-449.89 125.96,-449.89 131.89,-450.78 131.89,-450.78 228.21,-465.22 228.21,-465.22 234.14,-466.11 234.14,-467.89 228.21,-468.78 228.21,-468.78 131.89,-483.22 131.89,-483.22 125.96,-484.11 114.09,-484.11 108.16,-483.22" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="120.02" y="-464.8">POST e teste rápido passam?</text>
+</g>
+<!-- E&#45;&gt;F -->
+<g class="edge" id="svg_7da8d1ca52d44ecf6fdc_edge5">
+<title>E-&gt;F</title>
+<path d="M173.02,-511.68C164.51,-504.67 154.61,-496.51 145.68,-489.15" fill="none" stroke="black"></path>
+<polygon fill="black" points="147.77,-486.33 137.83,-482.67 143.32,-491.74 147.77,-486.33" stroke="black"></polygon>
+</g>
+<!-- G -->
+<g class="node" id="svg_7da8d1ca52d44ecf6fdc_node7">
+<title>G</title>
+<path d="M288.52,-414C288.52,-414 221.52,-414 221.52,-414 215.52,-414 209.52,-408 209.52,-402 209.52,-402 209.52,-390 209.52,-390 209.52,-384 215.52,-378 221.52,-378 221.52,-378 288.52,-378 288.52,-378 294.52,-378 300.52,-384 300.52,-390 300.52,-390 300.52,-402 300.52,-402 300.52,-408 294.52,-414 288.52,-414" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="255.02" y="-398.8">Ajustar sinal/IMC</text>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="255.02" y="-388.8">ou recuar</text>
+</g>
+<!-- F&#45;&gt;G -->
+<g class="edge" id="svg_7da8d1ca52d44ecf6fdc_edge6">
+<title>F-&gt;G</title>
+<path d="M146.05,-452.7C164.83,-443.1 190.58,-429.94 212.34,-418.81" fill="none" stroke="black"></path>
+<polygon fill="black" points="214.08,-421.86 221.39,-414.19 210.9,-415.62 214.08,-421.86" stroke="black"></polygon>
+<text font-family="DejaVu Sans" font-size="8.00" text-anchor="middle" x="204.52" y="-429.6"> Não</text>
+</g>
+<!-- H -->
+<g class="node" id="svg_7da8d1ca52d44ecf6fdc_node8">
+<title>H</title>
+<path d="M166.52,-414C166.52,-414 73.52,-414 73.52,-414 67.52,-414 61.52,-408 61.52,-402 61.52,-402 61.52,-390 61.52,-390 61.52,-384 67.52,-378 73.52,-378 73.52,-378 166.52,-378 166.52,-378 172.52,-378 178.52,-384 178.52,-390 178.52,-390 178.52,-402 178.52,-402 178.52,-408 172.52,-414 166.52,-414" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="120.02" y="-393.8">Encontrar teto prático</text>
+</g>
+<!-- F&#45;&gt;H -->
+<g class="edge" id="svg_7da8d1ca52d44ecf6fdc_edge8">
+<title>F-&gt;H</title>
+<path d="M120.02,-448.94C120.02,-441.54 120.02,-432.67 120.02,-424.38" fill="none" stroke="black"></path>
+<polygon fill="black" points="123.53,-424.34 120.02,-414.34 116.53,-424.34 123.53,-424.34" stroke="black"></polygon>
+<text font-family="DejaVu Sans" font-size="8.00" text-anchor="middle" x="129.02" y="-429.6"> Sim</text>
+</g>
+<!-- G&#45;&gt;E -->
+<g class="edge" id="svg_7da8d1ca52d44ecf6fdc_edge7">
+<title>G-&gt;E</title>
+<path d="M257.77,-414.31C259.86,-432.89 260.67,-462.75 249.02,-485 244.95,-492.79 238.83,-499.67 232.13,-505.54" fill="none" stroke="black"></path>
+<polygon fill="black" points="229.72,-502.99 224.09,-511.97 234.09,-508.46 229.72,-502.99" stroke="black"></polygon>
+</g>
+<!-- I -->
+<g class="node" id="svg_7da8d1ca52d44ecf6fdc_node9">
+<title>I</title>
+<path d="M175.02,-351C175.02,-351 65.02,-351 65.02,-351 59.02,-351 53.02,-345 53.02,-339 53.02,-339 53.02,-327 53.02,-327 53.02,-321 59.02,-315 65.02,-315 65.02,-315 175.02,-315 175.02,-315 181.02,-315 187.02,-321 187.02,-327 187.02,-327 187.02,-339 187.02,-339 187.02,-345 181.02,-351 175.02,-351" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="120.02" y="-335.8">Escolher frequência diária</text>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="120.02" y="-325.8">com margem</text>
+</g>
+<!-- H&#45;&gt;I -->
+<g class="edge" id="svg_7da8d1ca52d44ecf6fdc_edge9">
+<title>H-&gt;I</title>
+<path d="M120.02,-377.68C120.02,-372.62 120.02,-366.95 120.02,-361.42" fill="none" stroke="black"></path>
+<polygon fill="black" points="123.53,-361.15 120.02,-351.15 116.53,-361.15 123.53,-361.15" stroke="black"></polygon>
+</g>
+<!-- J -->
+<g class="node" id="svg_7da8d1ca52d44ecf6fdc_node10">
+<title>J</title>
+<path d="M155.52,-288C155.52,-288 84.52,-288 84.52,-288 78.52,-288 72.52,-282 72.52,-276 72.52,-276 72.52,-264 72.52,-264 72.52,-258 78.52,-252 84.52,-252 84.52,-252 155.52,-252 155.52,-252 161.52,-252 167.52,-258 167.52,-264 167.52,-264 167.52,-276 167.52,-276 167.52,-282 161.52,-288 155.52,-288" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="120.02" y="-267.8">Apertar primários</text>
+</g>
+<!-- I&#45;&gt;J -->
+<g class="edge" id="svg_7da8d1ca52d44ecf6fdc_edge10">
+<title>I-&gt;J</title>
+<path d="M120.02,-314.68C120.02,-309.62 120.02,-303.95 120.02,-298.42" fill="none" stroke="black"></path>
+<polygon fill="black" points="123.53,-298.15 120.02,-288.15 116.53,-298.15 123.53,-298.15" stroke="black"></polygon>
+</g>
+<!-- K -->
+<g class="node" id="svg_7da8d1ca52d44ecf6fdc_node11">
+<title>K</title>
+<path d="M161.52,-225C161.52,-225 78.52,-225 78.52,-225 72.52,-225 66.52,-219 66.52,-213 66.52,-213 66.52,-201 66.52,-201 66.52,-195 72.52,-189 78.52,-189 78.52,-189 161.52,-189 161.52,-189 167.52,-189 173.52,-195 173.52,-201 173.52,-201 173.52,-213 173.52,-213 173.52,-219 167.52,-225 161.52,-225" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="120.02" y="-204.8">Apertar secundários</text>
+</g>
+<!-- J&#45;&gt;K -->
+<g class="edge" id="svg_7da8d1ca52d44ecf6fdc_edge11">
+<title>J-&gt;K</title>
+<path d="M120.02,-251.68C120.02,-246.62 120.02,-240.95 120.02,-235.42" fill="none" stroke="black"></path>
+<polygon fill="black" points="123.53,-235.15 120.02,-225.15 116.53,-235.15 123.53,-235.15" stroke="black"></polygon>
+</g>
+<!-- L -->
+<g class="node" id="svg_7da8d1ca52d44ecf6fdc_node12">
+<title>L</title>
+<path d="M155.52,-162C155.52,-162 84.52,-162 84.52,-162 78.52,-162 72.52,-156 72.52,-150 72.52,-150 72.52,-138 72.52,-138 72.52,-132 78.52,-126 84.52,-126 84.52,-126 155.52,-126 155.52,-126 161.52,-126 167.52,-132 167.52,-138 167.52,-138 167.52,-150 167.52,-150 167.52,-156 161.52,-162 155.52,-162" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="120.02" y="-141.8">Apertar terciários</text>
+</g>
+<!-- K&#45;&gt;L -->
+<g class="edge" id="svg_7da8d1ca52d44ecf6fdc_edge12">
+<title>K-&gt;L</title>
+<path d="M120.02,-188.68C120.02,-183.62 120.02,-177.95 120.02,-172.42" fill="none" stroke="black"></path>
+<polygon fill="black" points="123.53,-172.15 120.02,-162.15 116.53,-172.15 123.53,-172.15" stroke="black"></polygon>
+</g>
+<!-- M -->
+<g class="node" id="svg_7da8d1ca52d44ecf6fdc_node13">
+<title>M</title>
+<path d="M165.02,-99C165.02,-99 75.02,-99 75.02,-99 69.02,-99 63.02,-93 63.02,-87 63.02,-87 63.02,-75 63.02,-75 63.02,-69 69.02,-63 75.02,-63 75.02,-63 165.02,-63 165.02,-63 171.02,-63 177.02,-69 177.02,-75 177.02,-75 177.02,-87 177.02,-87 177.02,-93 171.02,-99 165.02,-99" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="120.02" y="-78.8">Benchmark 3-5 vezes</text>
+</g>
+<!-- L&#45;&gt;M -->
+<g class="edge" id="svg_7da8d1ca52d44ecf6fdc_edge13">
+<title>L-&gt;M</title>
+<path d="M120.02,-125.68C120.02,-120.62 120.02,-114.95 120.02,-109.42" fill="none" stroke="black"></path>
+<polygon fill="black" points="123.53,-109.15 120.02,-99.15 116.53,-109.15 123.53,-109.15" stroke="black"></polygon>
+</g>
+<!-- N -->
+<g class="node" id="svg_7da8d1ca52d44ecf6fdc_node14">
+<title>N</title>
+<path d="M148.52,-36C148.52,-36 91.52,-36 91.52,-36 85.52,-36 79.52,-30 79.52,-24 79.52,-24 79.52,-12 79.52,-12 79.52,-6 85.52,0 91.52,0 91.52,0 148.52,0 148.52,0 154.52,0 160.52,-6 160.52,-12 160.52,-12 160.52,-24 160.52,-24 160.52,-30 154.52,-36 148.52,-36" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="120.02" y="-15.8">Validação final</text>
+</g>
+<!-- M&#45;&gt;N -->
+<g class="edge" id="svg_7da8d1ca52d44ecf6fdc_edge14">
+<title>M-&gt;N</title>
+<path d="M120.02,-62.68C120.02,-57.62 120.02,-51.95 120.02,-46.42" fill="none" stroke="black"></path>
+<polygon fill="black" points="123.53,-46.15 120.02,-36.15 116.53,-46.15 123.53,-46.15" stroke="black"></polygon>
+</g>
+</g>
+</svg>
+<figcaption>
+Fluxo Completo
+</figcaption>
+</figure><h2 id="ordem-recomendada">Ordem recomendada</h2><ol type="1">
+<li>validar stock;</li>
+<li>registrar XMP;</li>
+<li>escolher frequência e sincronismo;</li>
+<li>estabilizar IMC/fabric;</li>
+<li>ajustar primários;</li>
+<li>ajustar tRFC e refresh;</li>
+<li>ajustar secundários de ativação/turnaround;</li>
+<li>ajustar terciários;</li>
+<li>otimizar CR/GDM;</li>
+<li>validar novamente CPU e sistema completo.</li>
+</ol></section><section class="chapter" data-search="14. como encontrar a
+frequência-base" data-title="14. Como encontrar a
+frequência-base"><span class="chapter-kicker">Seção 18</span><h1 id="como-encontrar-a-frequência-base">14. Como encontrar a
+frequência-base<a aria-label="Copiar link desta seção" class="heading-anchor" href="#como-encontrar-a-frequência-base" title="Link direto">#</a></h1><h2 id="configuração-inicial">14.1 Configuração inicial</h2><p>Não existe um conjunto universal de timings soltos. Um ponto inicial
+genérico para IC desconhecido pode ser:</p><pre class="text"><code>DRAM Voltage: 1,35 V
+Primários: 18-22-22-42
+Command Rate: 2T
+Secundários/terciários: Auto</code></pre><p>Em Samsung B-die confirmado, 16-20-20-40 pode ser suficientemente
+solto. Em IC fraco ou frequência alta, 20-24-24-46 pode ser
+necessário.</p><h2 id="passos">14.2 Passos</h2><ol type="1">
+<li>comece na frequência XMP ou abaixo;</li>
+<li>teste stock/XMP;</li>
+<li>aumente um multiplicador de memória por vez;</li>
+<li>em Zen 2/3, ajuste FCLK e UCLK conscientemente;</li>
+<li>execute teste rápido após cada aumento;</li>
+<li>ao primeiro erro, descubra se o limite é DRAM, IMC, fabric ou
+treinamento;</li>
+<li>recuar um passo costuma ser melhor que forçar tensão sem
+diagnóstico.</li>
+</ol><h2 id="teto-de-boot-não-é-teto-estável">14.3 Teto de boot não é teto
+estável</h2><p>Defina três limites:</p><ul>
+<li><strong>teto de POST:</strong> maior frequência que inicia;</li>
+<li><strong>teto de teste rápido:</strong> passa uma triagem curta;</li>
+<li><strong>teto diário:</strong> passa validação completa com margem
+térmica.</li>
+</ul><p>Use o terceiro para o perfil final.</p></section><section class="chapter" data-search="15. como apertar timings
+primários" data-title="15. Como apertar timings
+primários"><span class="chapter-kicker">Seção 19</span><h1 id="como-apertar-timings-primários">15. Como apertar timings
+primários<a aria-label="Copiar link desta seção" class="heading-anchor" href="#como-apertar-timings-primários" title="Link direto">#</a></h1><p>Ajuste um grupo pequeno por vez. Salve o perfil antes de cada
+etapa.</p><h2 id="tcl">15.1 tCL</h2><ol type="1">
+<li>reduza em 1;</li>
+<li>teste rapidamente;</li>
+<li>se falhar, volte ou aumente DRAM Voltage em passo pequeno, apenas se
+o IC costuma responder;</li>
+<li>em AMD com GDM ativo, valores ímpares podem ser arredondados ou
+tratados de maneira diferente.</li>
+</ol><h2 id="trcdrd-e-trcdwr">15.2 tRCDRD e tRCDWR</h2><ul>
+<li>B-die costuma permitir valores baixos e responder à tensão;</li>
+<li>CJR, DJR e Rev. E normalmente exigem tRCD maior;</li>
+<li>em AMD, ajuste leitura e escrita separadamente quando possível;</li>
+<li>tRCDRD costuma ser mais difícil que tRCDWR.</li>
+</ul><h2 id="trp">15.3 tRP</h2><p>Reduza separadamente quando o BIOS permitir. Não presuma que precisa
+ser igual a tRCD.</p><h2 id="tras">15.4 tRAS</h2><ol type="1">
+<li>reduza em passos de 2;</li>
+<li>confirme o valor efetivamente aplicado;</li>
+<li>verifique tRC;</li>
+<li>teste leitura, escrita e cargas mistas;</li>
+<li>pare quando o ganho desaparecer ou erros surgirem.</li>
+</ol><h2 id="command-rate-e-gear-down-mode">15.5 Command Rate e Gear Down
+Mode</h2><h3 id="intel-1">Intel</h3><ul>
+<li>use 2T durante busca de frequência;</li>
+<li>tente 1T após estabilizar os demais parâmetros;</li>
+<li>CR1 pode melhorar latência, mas aumenta exigência de sinal.</li>
+</ul><h3 id="amd-1">AMD</h3><ul>
+<li>GDM ativo facilita treinamento e impõe restrições a timings;</li>
+<li>GDM desativado com CR1 pode melhorar desempenho, mas é uma etapa
+avançada;</li>
+<li>não desative GDM no início apenas para usar CL ímpar.</li>
+</ul></section><section class="chapter" data-search="16. como apertar timings
+secundários" data-title="16. Como apertar timings
+secundários"><span class="chapter-kicker">Seção 20</span><h1 id="como-apertar-timings-secundários">16. Como apertar timings
+secundários<a aria-label="Copiar link desta seção" class="heading-anchor" href="#como-apertar-timings-secundários" title="Link direto">#</a></h1><h2 id="trfc-1">16.1 tRFC</h2><p>Trabalhe em nanossegundos para comparar frequências:</p><pre class="text"><code>tRFC(ns) = tRFC(ciclos) × 2000 / MT/s</code></pre><p>Exemplo:</p><pre class="text"><code>DDR4-3600, tRFC 360
+360 × 2000 / 3600 = 200 ns</code></pre><h3 id="procedimento">Procedimento</h3><ol type="1">
+<li>descubra o valor treinado;</li>
+<li>converta para ns;</li>
+<li>reduza em passos de 10–20 ciclos;</li>
+<li>teste após cada passo;</li>
+<li>repita o teste com memória aquecida;</li>
+<li>não use valor de outro IC como alvo obrigatório.</li>
+</ol><h2 id="trrds-trrdl-e-tfaw">16.2 tRRDS, tRRDL e tFAW</h2><p>Esses timings governam ativações de bancos. A relação entre tFAW,
+largura do dispositivo e tRRD é mais complexa do que uma única fórmula
+universal.</p><p>Ponto prático comum para muitos módulos x8:</p><pre class="text"><code>tRRDS: 4–6
+tRRDL: 6–8
+tFAW: 16–32</code></pre><p>Use como intervalo de exploração, não como garantia.</p><h2 id="twr-e-trtp">16.3 tWR e tRTP</h2><ul>
+<li>reduza tRTP em passos pequenos;</li>
+<li>tWR muito baixo pode causar erros de escrita/corrupção;</li>
+<li>alguns BIOS exibem valor derivado ou aplicam arredondamento.</li>
+</ul><h2 id="twtrs-e-twtrl">16.4 tWTRS e tWTRL</h2><p>Algumas plataformas derivam esses timings de outros registradores.
+Confirme em ferramenta de leitura se o valor realmente mudou.</p><h2 id="tcwl">16.5 tCWL</h2><p>Não use a regra “frequência par exige tCWL par”. O comportamento
+depende do controlador, GDM, modo de comando e limites do firmware.</p><p>Comece próximo de tCL e reduza gradualmente.</p></section><section class="chapter" data-search="17. como apertar timings
+terciários" data-title="17. Como apertar timings
+terciários"><span class="chapter-kicker">Seção 21</span><h1 id="como-apertar-timings-terciários">17. Como apertar timings
+terciários<a aria-label="Copiar link desta seção" class="heading-anchor" href="#como-apertar-timings-terciários" title="Link direto">#</a></h1><h2 id="amd-scl">17.1 AMD SCL</h2><ul>
+<li>tRDRDSCL e tWRWRSCL influenciam largura de banda;</li>
+<li>valores 4–5 são comuns como ponto inicial;</li>
+<li>2 pode ser muito exigente;</li>
+<li>3–4 frequentemente oferece boa relação desempenho/estabilidade.</li>
+</ul><h2 id="intel-rtl-e-iol">17.2 Intel RTL e IOL</h2><p>RTL e IOL são treinados pelo BIOS e podem alterar fortemente
+latência.</p><p>Riscos de ajuste manual:</p><ul>
+<li>boot inconsistente;</li>
+<li>treinamento que ignora o valor;</li>
+<li>perda de canal;</li>
+<li>necessidade de limpar CMOS.</li>
+</ul><p>Somente ajuste depois de registrar valores treinados bons em vários
+boots.</p><h2 id="turnarounds">17.3 Turnarounds</h2><p>Reduza grupos individualmente:</p><ol type="1">
+<li>RDRD;</li>
+<li>WRWR;</li>
+<li>RDWR;</li>
+<li>WRRD.</li>
+</ol><p>Não aplique todos os mínimos de uma tabela de internet de uma vez. O
+erro pode depender de rank, canal e direção da operação.</p></section><section class="chapter" data-search="18. tensões: método correto e
+limites" data-title="18. Tensões: método correto e
+limites"><span class="chapter-kicker">Seção 22</span><h1 id="tensões-método-correto-e-limites">18. Tensões: método correto e
+limites<a aria-label="Copiar link desta seção" class="heading-anchor" href="#tensões-método-correto-e-limites" title="Link direto">#</a></h1><h2 id="nominal-perfil-e-máximo-absoluto-são-conceitos-diferentes">18.1
+Nominal, perfil e máximo absoluto são conceitos diferentes</h2><ul>
+<li>DDR4 JEDEC comum opera a 1,20 V;</li>
+<li>muitos perfis XMP usam 1,35 V;</li>
+<li>kits de alto desempenho podem ser classificados pelo fabricante para
+tensões maiores;</li>
+<li>“máximo absoluto” de um componente <strong>não é tensão diária
+recomendada</strong>.</li>
+</ul><h2 id="não-existe-uma-tabela-diária-universal-por-ic">18.2 Não existe
+uma tabela diária universal por IC</h2><p>Uma recomendação séria precisa conhecer:</p><ul>
+<li>part number do chip;</li>
+<li>tensão nominal do kit;</li>
+<li>bin;</li>
+<li>temperatura;</li>
+<li>airflow;</li>
+<li>PCB;</li>
+<li>duração pretendida;</li>
+<li>precisão do sensor/placa-mãe.</li>
+</ul><p>Por isso, este guia não chama 1,50 V de “seguro diariamente”.</p><h2 id="método-de-ajuste">18.3 Método de ajuste</h2><ol type="1">
+<li>comece na tensão XMP;</li>
+<li>altere em passos de 0,01–0,025 V;</li>
+<li>meça tensão efetiva, não apenas o valor solicitado;</li>
+<li>observe temperatura e scaling;</li>
+<li>se mais tensão piorar, volte imediatamente;</li>
+<li>use a menor tensão que passa a validação final.</li>
+</ol><h2 id="scaling-positivo-nulo-e-negativo">18.4 Scaling positivo, nulo e
+negativo</h2><figure class="diagram" data-diagram="10">
+<svg alt="Scaling Tensao" aria-label="Scaling Tensao" id="svg_0f05c7e45f1d5b901c0e" preserveAspectRatio="xMidYMid meet" role="img" viewbox="0.00 0.00 503.22 180.00">
+<g class="graph" id="svg_0f05c7e45f1d5b901c0e_graph0" transform="scale(1 1) rotate(0) translate(18 162)">
+<title>G</title>
+<!-- A -->
+<g class="node" id="svg_0f05c7e45f1d5b901c0e_node1">
+<title>A</title>
+<path d="M89,-90C89,-90 12,-90 12,-90 6,-90 0,-84 0,-78 0,-78 0,-66 0,-66 0,-60 6,-54 12,-54 12,-54 89,-54 89,-54 95,-54 101,-60 101,-66 101,-66 101,-78 101,-78 101,-84 95,-90 89,-90" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="10.00" text-anchor="middle" x="50.5" y="-69.5">Aumentar tensão</text>
+</g>
+<!-- B -->
+<g class="node" id="svg_0f05c7e45f1d5b901c0e_node2">
+<title>B</title>
+<path d="M180.72,-86.22C180.72,-86.22 149.28,-75.78 149.28,-75.78 143.58,-73.89 143.58,-70.11 149.28,-68.22 149.28,-68.22 180.72,-57.78 180.72,-57.78 186.42,-55.89 197.81,-55.89 203.5,-57.78 203.5,-57.78 234.95,-68.22 234.95,-68.22 240.64,-70.11 240.64,-73.89 234.95,-75.78 234.95,-75.78 203.5,-86.22 203.5,-86.22 197.81,-88.11 186.42,-88.11 180.72,-86.22" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="10.00" text-anchor="middle" x="192.11" y="-69.5">Resultado</text>
+</g>
+<!-- A&#45;&gt;B -->
+<g class="edge" id="svg_0f05c7e45f1d5b901c0e_edge1">
+<title>A-&gt;B</title>
+<path d="M101.12,-72C109.77,-72 118.88,-72 127.84,-72" fill="none" stroke="black"></path>
+<polygon fill="black" points="127.87,-75.5 137.87,-72 127.87,-68.5 127.87,-75.5" stroke="black"></polygon>
+</g>
+<!-- C -->
+<g class="node" id="svg_0f05c7e45f1d5b901c0e_node3">
+<title>C</title>
+<path d="M455.22,-144C455.22,-144 333.22,-144 333.22,-144 327.22,-144 321.22,-138 321.22,-132 321.22,-132 321.22,-120 321.22,-120 321.22,-114 327.22,-108 333.22,-108 333.22,-108 455.22,-108 455.22,-108 461.22,-108 467.22,-114 467.22,-120 467.22,-120 467.22,-132 467.22,-132 467.22,-138 461.22,-144 455.22,-144" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="10.00" text-anchor="middle" x="394.22" y="-129">Scaling positivo</text>
+<text font-family="DejaVu Sans" font-size="10.00" text-anchor="middle" x="394.22" y="-118">melhora frequência/timing</text>
+</g>
+<!-- B&#45;&gt;C -->
+<g class="edge" id="svg_0f05c7e45f1d5b901c0e_edge2">
+<title>B-&gt;C</title>
+<path d="M222.64,-79.97C247.27,-86.61 283.51,-96.39 316.25,-105.23" fill="none" stroke="black"></path>
+<polygon fill="black" points="315.72,-108.71 326.29,-107.94 317.54,-101.95 315.72,-108.71" stroke="black"></polygon>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="283.72" y="-102.8"> Melhora</text>
+</g>
+<!-- D -->
+<g class="node" id="svg_0f05c7e45f1d5b901c0e_node4">
+<title>D</title>
+<path d="M420.22,-90C420.22,-90 368.22,-90 368.22,-90 362.22,-90 356.22,-84 356.22,-78 356.22,-78 356.22,-66 356.22,-66 356.22,-60 362.22,-54 368.22,-54 368.22,-54 420.22,-54 420.22,-54 426.22,-54 432.22,-60 432.22,-66 432.22,-66 432.22,-78 432.22,-78 432.22,-84 426.22,-90 420.22,-90" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="10.00" text-anchor="middle" x="394.22" y="-75">Scaling nulo</text>
+<text font-family="DejaVu Sans" font-size="10.00" text-anchor="middle" x="394.22" y="-64">nada muda</text>
+</g>
+<!-- B&#45;&gt;D -->
+<g class="edge" id="svg_0f05c7e45f1d5b901c0e_edge3">
+<title>B-&gt;D</title>
+<path d="M246.48,-72C277.44,-72 316.1,-72 345.97,-72" fill="none" stroke="black"></path>
+<polygon fill="black" points="346.14,-75.5 356.14,-72 346.14,-68.5 346.14,-75.5" stroke="black"></polygon>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="283.72" y="-74.8"> Igual</text>
+</g>
+<!-- E -->
+<g class="node" id="svg_0f05c7e45f1d5b901c0e_node5">
+<title>E</title>
+<path d="M431.22,-36C431.22,-36 357.22,-36 357.22,-36 351.22,-36 345.22,-30 345.22,-24 345.22,-24 345.22,-12 345.22,-12 345.22,-6 351.22,0 357.22,0 357.22,0 431.22,0 431.22,0 437.22,0 443.22,-6 443.22,-12 443.22,-12 443.22,-24 443.22,-24 443.22,-30 437.22,-36 431.22,-36" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="10.00" text-anchor="middle" x="394.22" y="-21">Scaling negativo</text>
+<text font-family="DejaVu Sans" font-size="10.00" text-anchor="middle" x="394.22" y="-10">erros aumentam</text>
+</g>
+<!-- B&#45;&gt;E -->
+<g class="edge" id="svg_0f05c7e45f1d5b901c0e_edge4">
+<title>B-&gt;E</title>
+<path d="M222.64,-64.03C252.05,-56.09 298.02,-43.69 334.82,-33.76" fill="none" stroke="black"></path>
+<polygon fill="black" points="336.2,-37.01 344.94,-31.03 334.38,-30.26 336.2,-37.01" stroke="black"></polygon>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="283.72" y="-53.8"> Piora</text>
+</g>
+</g>
+</svg>
+<figcaption>
+Scaling Tensao
+</figcaption>
+</figure><ul>
+<li>B-die costuma apresentar scaling positivo em vários timings;</li>
+<li>Rev. E costuma responder em tCL, mas não da mesma forma em
+tRCD;</li>
+<li>Samsung C-die pode piorar com tensão excessiva;</li>
+<li>tensão do IMC também pode escalar negativamente.</li>
+</ul><h2 id="tensões-do-imc">18.5 Tensões do IMC</h2><p>Nunca trate VCCSA, VCCIO, VSOC, VDDG ou VDDP como “quanto mais,
+melhor”.</p><p>Sinais de tensão excessiva:</p><ul>
+<li>frequência que antes passava começa a falhar;</li>
+<li>treinamento piora;</li>
+<li>WHEA aparece após aumentar tensão;</li>
+<li>temperatura do controlador sobe;</li>
+<li>latência varia entre boots.</li>
+</ul></section><section class="chapter" data-search="19. protocolo de estabilidade" data-title="19. Protocolo de estabilidade"><span class="chapter-kicker">Seção 23</span><h1 id="protocolo-de-estabilidade">19. Protocolo de estabilidade<a aria-label="Copiar link desta seção" class="heading-anchor" href="#protocolo-de-estabilidade" title="Link direto">#</a></h1><h2 id="estágio-0-stock">19.1 Estágio 0 — stock</h2><p>Antes do OC:</p><ul>
+<li>MemTest86+ ou MemTest86: ao menos uma passagem completa;</li>
+<li>OCCT Memory: 30 minutos;</li>
+<li>verificar WHEA e SMART;</li>
+<li>confirmar que CPU/GPU também são estáveis.</li>
+</ul><h2 id="estágio-1-triagem-rápida">19.2 Estágio 1 — triagem rápida</h2><p>Após cada pequena alteração:</p><ul>
+<li>TM5: uma passagem curta de perfil conhecido; ou</li>
+<li>OCCT Memory: 10–15 minutos; ou</li>
+<li>y-cruncher VT3: 10–15 minutos.</li>
+</ul><p>Objetivo: rejeitar rapidamente configurações ruins. Passar não
+significa finalizar.</p><h2 id="estágio-2-validação-intermediária">19.3 Estágio 2 — validação
+intermediária</h2><p>Após fechar frequência ou um grupo de timings:</p><ul>
+<li>TM5 anta777/Absolut: execução completa recomendada pelo perfil;</li>
+<li>OCCT Memory SSE e AVX: cerca de 30 minutos cada;</li>
+<li>y-cruncher VT3/VST: 30–60 minutos;</li>
+<li>em AMD, teste adicional focado em fabric.</li>
+</ul><h2 id="estágio-3-validação-final">19.4 Estágio 3 — validação final</h2><p>Use pelo menos dois mecanismos diferentes:</p><h3 id="exemplo-de-bateria-final">Exemplo de bateria final</h3><ol type="1">
+<li>MemTest86+ fora do Windows;</li>
+<li>TM5, 3–6 ciclos conforme memória e perfil;</li>
+<li>Karhu, 5.000–10.000% ou teste longo equivalente;</li>
+<li>OCCT Memory, uma hora com preset adequado;</li>
+<li>y-cruncher VT3/VST, uma hora;</li>
+<li>carga real: jogo, compilação, compactação e descompactação com
+hashes;</li>
+<li>cinco boots frios, cinco boots quentes e suspensão/retomada.</li>
+</ol><p>Os tempos são referências comunitárias, não prova matemática de
+ausência de erros.</p><h2 id="teste-de-corrupção-prático">19.5 Teste de corrupção prático</h2><ol type="1">
+<li>escolha um arquivo grande conhecido;</li>
+<li>calcule SHA-256;</li>
+<li>compacte e descompacte repetidamente;</li>
+<li>recalcule o hash;</li>
+<li>qualquer divergência reprova o perfil.</li>
+</ol><h2 id="zero-erros-significa-zero-erros">19.6 Zero erros significa zero
+erros</h2><ul>
+<li>um erro não é “quase estável”;</li>
+<li>erro intermitente pode ser mais perigoso que crash imediato;</li>
+<li>WHEA corrigido também indica margem insuficiente;</li>
+<li>se o teste fecha sozinho, o resultado é inválido.</li>
+</ul></section><section class="chapter" data-search="20. fluxo de diagnóstico de
+erros" data-title="20. Fluxo de diagnóstico de
+erros"><span class="chapter-kicker">Seção 24</span><h1 id="fluxo-de-diagnóstico-de-erros">20. Fluxo de diagnóstico de
+erros<a aria-label="Copiar link desta seção" class="heading-anchor" href="#fluxo-de-diagnóstico-de-erros" title="Link direto">#</a></h1><figure class="diagram" data-diagram="11">
+<svg alt="Diagnostico" aria-label="Diagnostico" id="svg_92f3a632faa29e4a17a0" preserveAspectRatio="xMidYMid meet" role="img" viewbox="0.00 0.00 829.26 490.00">
+<g class="graph" id="svg_92f3a632faa29e4a17a0_graph0" transform="scale(1 1) rotate(0) translate(18 472)">
+<title>G</title>
+<!-- A -->
+<g class="node" id="svg_92f3a632faa29e4a17a0_node1">
+<title>A</title>
+<path d="M126.26,-454C126.26,-454 58.26,-454 58.26,-454 52.26,-454 46.26,-448 46.26,-442 46.26,-442 46.26,-430 46.26,-430 46.26,-424 52.26,-418 58.26,-418 58.26,-418 126.26,-418 126.26,-418 132.26,-418 138.26,-424 138.26,-430 138.26,-430 138.26,-442 138.26,-442 138.26,-448 132.26,-454 126.26,-454" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="92.26" y="-433.8">Erro de memória</text>
+</g>
+<!-- B -->
+<g class="node" id="svg_92f3a632faa29e4a17a0_node2">
+<title>B</title>
+<path d="M80.49,-388.7C80.49,-388.7 12.01,-375.3 12.01,-375.3 6.12,-374.15 6.12,-371.85 12.01,-370.7 12.01,-370.7 80.49,-357.3 80.49,-357.3 86.38,-356.15 98.15,-356.15 104.04,-357.3 104.04,-357.3 172.52,-370.7 172.52,-370.7 178.4,-371.85 178.4,-374.15 172.52,-375.3 172.52,-375.3 104.04,-388.7 104.04,-388.7 98.15,-389.85 86.38,-389.85 80.49,-388.7" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="92.26" y="-370.8">Stock também falha?</text>
+</g>
+<!-- A&#45;&gt;B -->
+<g class="edge" id="svg_92f3a632faa29e4a17a0_edge1">
+<title>A-&gt;B</title>
+<path d="M92.26,-417.68C92.26,-412.62 92.26,-406.95 92.26,-401.42" fill="none" stroke="black"></path>
+<polygon fill="black" points="95.76,-401.15 92.26,-391.15 88.76,-401.15 95.76,-401.15" stroke="black"></polygon>
+</g>
+<!-- C -->
+<g class="node" id="svg_92f3a632faa29e4a17a0_node3">
+<title>C</title>
+<path d="M127.26,-320C127.26,-320 17.26,-320 17.26,-320 11.26,-320 5.26,-314 5.26,-308 5.26,-308 5.26,-296 5.26,-296 5.26,-290 11.26,-284 17.26,-284 17.26,-284 127.26,-284 127.26,-284 133.26,-284 139.26,-290 139.26,-296 139.26,-296 139.26,-308 139.26,-308 139.26,-314 133.26,-320 127.26,-320" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="72.26" y="-304.8">Testar módulo por módulo</text>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="72.26" y="-294.8">e slot por slot</text>
+</g>
+<!-- B&#45;&gt;C -->
+<g class="edge" id="svg_92f3a632faa29e4a17a0_edge2">
+<title>B-&gt;C</title>
+<path d="M87.52,-355.65C85.3,-347.97 82.59,-338.62 80.07,-329.94" fill="none" stroke="black"></path>
+<polygon fill="black" points="83.39,-328.83 77.25,-320.2 76.67,-330.78 83.39,-328.83" stroke="black"></polygon>
+<text font-family="DejaVu Sans" font-size="8.00" text-anchor="middle" x="93.26" y="-335.6"> Sim</text>
+</g>
+<!-- D -->
+<g class="node" id="svg_92f3a632faa29e4a17a0_node4">
+<title>D</title>
+<path d="M260.41,-318.15C260.41,-318.15 168.87,-303.85 168.87,-303.85 162.94,-302.93 162.94,-301.07 168.87,-300.15 168.87,-300.15 260.41,-285.85 260.41,-285.85 266.34,-284.93 278.19,-284.93 284.12,-285.85 284.12,-285.85 375.66,-300.15 375.66,-300.15 381.59,-301.07 381.59,-302.93 375.66,-303.85 375.66,-303.85 284.12,-318.15 284.12,-318.15 278.19,-319.07 266.34,-319.07 260.41,-318.15" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="272.26" y="-299.8">Surgiu ao subir frequência?</text>
+</g>
+<!-- B&#45;&gt;D -->
+<g class="edge" id="svg_92f3a632faa29e4a17a0_edge3">
+<title>B-&gt;D</title>
+<path d="M121.99,-360.61C151.8,-349.18 197.93,-331.49 231.22,-318.73" fill="none" stroke="black"></path>
+<polygon fill="black" points="232.59,-321.96 240.68,-315.11 230.09,-315.42 232.59,-321.96" stroke="black"></polygon>
+<text font-family="DejaVu Sans" font-size="8.00" text-anchor="middle" x="202.76" y="-335.6"> Não</text>
+</g>
+<!-- E -->
+<g class="node" id="svg_92f3a632faa29e4a17a0_node5">
+<title>E</title>
+<path d="M273.26,-249C273.26,-249 151.26,-249 151.26,-249 145.26,-249 139.26,-243 139.26,-237 139.26,-237 139.26,-225 139.26,-225 139.26,-219 145.26,-213 151.26,-213 151.26,-213 273.26,-213 273.26,-213 279.26,-213 285.26,-219 285.26,-225 285.26,-225 285.26,-237 285.26,-237 285.26,-243 279.26,-249 273.26,-249" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="212.26" y="-233.8">Recuar frequência ou revisar</text>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="212.26" y="-223.8">IMC, FCLK e sinal</text>
+</g>
+<!-- D&#45;&gt;E -->
+<g class="edge" id="svg_92f3a632faa29e4a17a0_edge4">
+<title>D-&gt;E</title>
+<path d="M259.25,-286.03C251.92,-277.61 242.58,-266.87 234.17,-257.19" fill="none" stroke="black"></path>
+<polygon fill="black" points="236.58,-254.63 227.38,-249.38 231.3,-259.22 236.58,-254.63" stroke="black"></polygon>
+<text font-family="DejaVu Sans" font-size="8.00" text-anchor="middle" x="255.26" y="-264.6"> Sim</text>
+</g>
+<!-- F -->
+<g class="node" id="svg_92f3a632faa29e4a17a0_node6">
+<title>F</title>
+<path d="M398.43,-247.01C398.43,-247.01 315.18,-232.99 315.18,-232.99 309.26,-232 309.26,-230 315.18,-229.01 315.18,-229.01 398.43,-214.99 398.43,-214.99 404.35,-214 416.18,-214 422.1,-214.99 422.1,-214.99 505.35,-229.01 505.35,-229.01 511.27,-230 511.27,-232 505.35,-232.99 505.35,-232.99 422.1,-247.01 422.1,-247.01 416.18,-248 404.35,-248 398.43,-247.01" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="410.26" y="-228.8">Surgiu ao reduzir timing?</text>
+</g>
+<!-- D&#45;&gt;F -->
+<g class="edge" id="svg_92f3a632faa29e4a17a0_edge5">
+<title>D-&gt;F</title>
+<path d="M298.22,-288.02C320,-277.13 351.31,-261.48 375.3,-249.48" fill="none" stroke="black"></path>
+<polygon fill="black" points="377.04,-252.52 384.42,-244.92 373.91,-246.26 377.04,-252.52" stroke="black"></polygon>
+<text font-family="DejaVu Sans" font-size="8.00" text-anchor="middle" x="359.76" y="-264.6"> Não</text>
+</g>
+<!-- G -->
+<g class="node" id="svg_92f3a632faa29e4a17a0_node7">
+<title>G</title>
+<path d="M396.76,-178C396.76,-178 301.76,-178 301.76,-178 295.76,-178 289.76,-172 289.76,-166 289.76,-166 289.76,-154 289.76,-154 289.76,-148 295.76,-142 301.76,-142 301.76,-142 396.76,-142 396.76,-142 402.76,-142 408.76,-148 408.76,-154 408.76,-154 408.76,-166 408.76,-166 408.76,-172 402.76,-178 396.76,-178" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="349.26" y="-157.8">Reverter último timing</text>
+</g>
+<!-- F&#45;&gt;G -->
+<g class="edge" id="svg_92f3a632faa29e4a17a0_edge6">
+<title>F-&gt;G</title>
+<path d="M397.03,-215.03C389.51,-206.52 379.9,-195.65 371.27,-185.9" fill="none" stroke="black"></path>
+<polygon fill="black" points="373.87,-183.55 364.63,-178.38 368.63,-188.19 373.87,-183.55" stroke="black"></polygon>
+<text font-family="DejaVu Sans" font-size="8.00" text-anchor="middle" x="393.26" y="-193.6"> Sim</text>
+</g>
+<!-- H -->
+<g class="node" id="svg_92f3a632faa29e4a17a0_node8">
+<title>H</title>
+<path d="M541.38,-176.31C541.38,-176.31 438.53,-161.69 438.53,-161.69 432.59,-160.84 432.59,-159.16 438.53,-158.31 438.53,-158.31 541.38,-143.69 541.38,-143.69 547.32,-142.84 559.2,-142.84 565.14,-143.69 565.14,-143.69 668,-158.31 668,-158.31 673.94,-159.16 673.94,-160.84 668,-161.69 668,-161.69 565.14,-176.31 565.14,-176.31 559.2,-177.16 547.32,-177.16 541.38,-176.31" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="553.26" y="-157.8">Surgiu após aumentar tensão?</text>
+</g>
+<!-- F&#45;&gt;H -->
+<g class="edge" id="svg_92f3a632faa29e4a17a0_edge7">
+<title>F-&gt;H</title>
+<path d="M436.49,-217.34C458.94,-206.51 491.51,-190.8 516.55,-178.72" fill="none" stroke="black"></path>
+<polygon fill="black" points="518.25,-181.78 525.74,-174.28 515.21,-175.47 518.25,-181.78" stroke="black"></polygon>
+<text font-family="DejaVu Sans" font-size="8.00" text-anchor="middle" x="500.76" y="-193.6"> Não</text>
+</g>
+<!-- I -->
+<g class="node" id="svg_92f3a632faa29e4a17a0_node9">
+<title>I</title>
+<path d="M551.26,-107C551.26,-107 447.26,-107 447.26,-107 441.26,-107 435.26,-101 435.26,-95 435.26,-95 435.26,-83 435.26,-83 435.26,-77 441.26,-71 447.26,-71 447.26,-71 551.26,-71 551.26,-71 557.26,-71 563.26,-77 563.26,-83 563.26,-83 563.26,-95 563.26,-95 563.26,-101 557.26,-107 551.26,-107" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="499.26" y="-86.8">Possível scaling negativo</text>
+</g>
+<!-- H&#45;&gt;I -->
+<g class="edge" id="svg_92f3a632faa29e4a17a0_edge8">
+<title>H-&gt;I</title>
+<path d="M541.28,-143.69C534.74,-135.33 526.48,-124.78 519.02,-115.25" fill="none" stroke="black"></path>
+<polygon fill="black" points="521.65,-112.93 512.73,-107.21 516.14,-117.24 521.65,-112.93" stroke="black"></polygon>
+<text font-family="DejaVu Sans" font-size="8.00" text-anchor="middle" x="539.26" y="-122.6"> Sim</text>
+</g>
+<!-- J -->
+<g class="node" id="svg_92f3a632faa29e4a17a0_node10">
+<title>J</title>
+<path d="M663.48,-104.74C663.48,-104.74 593.25,-91.26 593.25,-91.26 587.36,-90.13 587.36,-87.87 593.25,-86.74 593.25,-86.74 663.48,-73.26 663.48,-73.26 669.37,-72.13 681.16,-72.13 687.05,-73.26 687.05,-73.26 757.27,-86.74 757.27,-86.74 763.17,-87.87 763.17,-90.13 757.27,-91.26 757.27,-91.26 687.05,-104.74 687.05,-104.74 681.16,-105.87 669.37,-105.87 663.48,-104.74" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="675.26" y="-86.8">Falha apenas quente?</text>
+</g>
+<!-- H&#45;&gt;J -->
+<g class="edge" id="svg_92f3a632faa29e4a17a0_edge9">
+<title>H-&gt;J</title>
+<path d="M577.37,-145.37C596.36,-134.63 623,-119.56 643.7,-107.85" fill="none" stroke="black"></path>
+<polygon fill="black" points="645.47,-110.87 652.45,-102.9 642.02,-104.78 645.47,-110.87" stroke="black"></polygon>
+<text font-family="DejaVu Sans" font-size="8.00" text-anchor="middle" x="631.76" y="-122.6"> Não</text>
+</g>
+<!-- K -->
+<g class="node" id="svg_92f3a632faa29e4a17a0_node11">
+<title>K</title>
+<path d="M653.26,-36C653.26,-36 571.26,-36 571.26,-36 565.26,-36 559.26,-30 559.26,-24 559.26,-24 559.26,-12 559.26,-12 559.26,-6 565.26,0 571.26,0 571.26,0 653.26,0 653.26,0 659.26,0 665.26,-6 665.26,-12 665.26,-12 665.26,-24 665.26,-24 665.26,-30 659.26,-36 653.26,-36" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="612.26" y="-20.8">Revisar tREFI, tRFC,</text>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="612.26" y="-10.8">airflow e margem</text>
+</g>
+<!-- J&#45;&gt;K -->
+<g class="edge" id="svg_92f3a632faa29e4a17a0_edge10">
+<title>J-&gt;K</title>
+<path d="M661.9,-73.37C654.04,-64.75 643.88,-53.63 634.81,-43.69" fill="none" stroke="black"></path>
+<polygon fill="black" points="637.15,-41.07 627.83,-36.05 631.99,-45.79 637.15,-41.07" stroke="black"></polygon>
+<text font-family="DejaVu Sans" font-size="8.00" text-anchor="middle" x="657.26" y="-51.6"> Sim</text>
+</g>
+<!-- L -->
+<g class="node" id="svg_92f3a632faa29e4a17a0_node12">
+<title>L</title>
+<path d="M781.26,-36C781.26,-36 695.26,-36 695.26,-36 689.26,-36 683.26,-30 683.26,-24 683.26,-24 683.26,-12 683.26,-12 683.26,-6 689.26,0 695.26,0 695.26,0 781.26,0 781.26,0 787.26,0 793.26,-6 793.26,-12 793.26,-12 793.26,-24 793.26,-24 793.26,-30 787.26,-36 781.26,-36" fill="none" stroke="black"></path>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="738.26" y="-20.8">Verificar CPU, cache,</text>
+<text font-family="DejaVu Sans" font-size="9.00" text-anchor="middle" x="738.26" y="-10.8">PSU e treinamento</text>
+</g>
+<!-- J&#45;&gt;L -->
+<g class="edge" id="svg_92f3a632faa29e4a17a0_edge11">
+<title>J-&gt;L</title>
+<path d="M688.62,-73.37C696.49,-64.75 706.65,-53.63 715.72,-43.69" fill="none" stroke="black"></path>
+<polygon fill="black" points="718.54,-45.79 722.7,-36.05 713.37,-41.07 718.54,-45.79" stroke="black"></polygon>
+<text font-family="DejaVu Sans" font-size="8.00" text-anchor="middle" x="719.76" y="-51.6"> Não</text>
+</g>
+</g>
+</svg>
+<figcaption>
+Diagnostico
+</figcaption>
+</figure><h2 id="não-inicia-o-post">20.1 Não inicia o POST</h2><p>Possíveis causas:</p><ul>
+<li>frequência muito alta;</li>
+<li>CR/GDM agressivo;</li>
+<li>ProcODT/RTT/CAD inadequados;</li>
+<li>tensão insuficiente ou excessiva;</li>
+<li>training failure;</li>
+<li>tCL/tCWL incompatível com o modo.</li>
+</ul><p>Ação:</p><ol type="1">
+<li>aguarde ciclos de treinamento;</li>
+<li>use botão Safe Boot/MemOK quando existir;</li>
+<li>limpe CMOS se necessário;</li>
+<li>carregue perfil anterior;</li>
+<li>altere somente uma variável.</li>
+</ol><h2 id="inicia-mas-erra-imediatamente">20.2 Inicia, mas erra
+imediatamente</h2><p>Geralmente indica margem muito baixa em um parâmetro importante:</p><ul>
+<li>tRCD/tRP;</li>
+<li>tRFC excessivamente baixo;</li>
+<li>frequência/IMC;</li>
+<li>tensão de DRAM fora da faixa ideal;</li>
+<li>CPU/cache instável.</li>
+</ul><h2 id="erra-somente-depois-de-muito-tempo">20.3 Erra somente depois de
+muito tempo</h2><p>Suspeite de:</p><ul>
+<li>temperatura;</li>
+<li>tREFI alto;</li>
+<li>tRFC no limite;</li>
+<li>tensão marginal;</li>
+<li>fabric/FCLK;</li>
+<li>transientes de carga.</li>
+</ul><h2 id="whea-em-amd">20.4 WHEA em AMD</h2><p>WHEA pode indicar fabric, IMC, CPU ou interconexão, não apenas RAM.
+Revise FCLK, VDDG, VSOC e estabilidade da CPU antes de aumentar
+tudo.</p><h2 id="bsod-não-identifica-sozinho-o-timing-culpado">20.5 BSOD não
+identifica sozinho o timing culpado</h2><p>Códigos de BSOD podem sugerir direção, mas não mapeiam de forma
+confiável um timing específico. Use histórico de alterações e reprodução
+controlada.</p></section><section class="chapter" data-search="21. benchmark correto" data-title="21. Benchmark correto"><span class="chapter-kicker">Seção 25</span><h1 id="benchmark-correto">21. Benchmark correto<a aria-label="Copiar link desta seção" class="heading-anchor" href="#benchmark-correto" title="Link direto">#</a></h1><h2 id="controle-de-variáveis">21.1 Controle de variáveis</h2><ul>
+<li>mesma versão do BIOS;</li>
+<li>mesmo clock de CPU/cache;</li>
+<li>mesma temperatura;</li>
+<li>mesmos processos em segundo plano;</li>
+<li>mesma versão de jogo e driver;</li>
+<li>plano de energia idêntico;</li>
+<li>reinicialização entre perfis quando necessário.</li>
+</ul><h2 id="repetição">21.2 Repetição</h2><p>Execute cada benchmark de 3 a 5 vezes.</p><pre class="text"><code>Média = soma dos resultados / quantidade</code></pre><p>Registre também mínimo, máximo e dispersão. Uma diferença menor que a
+variação natural não prova ganho.</p><h2 id="métricas-úteis">21.3 Métricas úteis</h2><ul>
+<li>latência AIDA64 ou Intel MLC;</li>
+<li>read/write/copy;</li>
+<li>1% low e 0,1% low em jogos;</li>
+<li>frametime;</li>
+<li>tempo de compilação/descompactação;</li>
+<li>consumo e temperatura.</li>
+</ul><h2 id="não-invente-tabela-de-fps">21.4 Não invente tabela de FPS</h2><p>Um comparativo válido precisa informar:</p><ul>
+<li>hardware completo;</li>
+<li>BIOS;</li>
+<li>timings completos;</li>
+<li>versão do jogo;</li>
+<li>cenário e duração;</li>
+<li>número de execuções;</li>
+<li>média e dispersão;</li>
+<li>arquivos brutos ou capturas.</li>
+</ul><p>Sem isso, números exatos de ganho são apenas ilustração e devem ser
+marcados como hipotéticos.</p></section><section class="chapter" data-search="22. exemplos educativos" data-title="22. Exemplos educativos"><span class="chapter-kicker">Seção 26</span><h1 id="exemplos-educativos">22. Exemplos educativos<a aria-label="Copiar link desta seção" class="heading-anchor" href="#exemplos-educativos" title="Link direto">#</a></h1><p>Os exemplos abaixo mostram o processo, não resultados garantidos.</p><h2 id="ic-desconhecido-perfil-conservador">22.1 IC desconhecido, perfil
+conservador</h2><pre class="text"><code>Objetivo: sair de JEDEC 2666 para 3200
+DRAM: 1,35 V
+Primários iniciais: 18-22-22-42
+CR: 2T
+Secundários: Auto</code></pre><p>Passos:</p><ol type="1">
+<li>validar 3200;</li>
+<li>tentar 16-20-20-38;</li>
+<li>reduzir tRFC gradualmente;</li>
+<li>testar cada etapa;</li>
+<li>parar se o ganho real for mínimo.</li>
+</ol><h2 id="ryzen-5000-alvo-sincronizado">22.2 Ryzen 5000, alvo
+sincronizado</h2><pre class="text"><code>Taxa DDR: 3600 MT/s
+MCLK: 1800 MHz
+UCLK: 1800 MHz
+FCLK: 1800 MHz
+GDM: Enabled inicialmente
+DRAM: tensão nominal/XMP</code></pre><p>Passos:</p><ol type="1">
+<li>testar FCLK e frequência com timings soltos;</li>
+<li>confirmar ausência de WHEA;</li>
+<li>apertar tCL/tRCDRD/tRP;</li>
+<li>ajustar tRFC conforme IC;</li>
+<li>somente depois testar GDM Off/CR1.</li>
+</ol><h2 id="samsung-b-die-confirmado">22.3 Samsung B-die confirmado</h2><p>Ponto inicial educativo em DDR4-3600:</p><pre class="text"><code>16-16-16-36
+DRAM próxima da tensão XMP
+CR2 ou GDM Enabled durante a busca</code></pre><p>Depois:</p><ul>
+<li>tentar CL15/14 apenas se temperatura e tensão permitirem;</li>
+<li>reduzir tRFC em etapas;</li>
+<li>testar quente;</li>
+<li>não assumir que 1,50 V é diário.</li>
+</ul><h2 id="micron-rev.-e-confirmado">22.4 Micron Rev. E confirmado</h2><p>Ponto inicial educativo em DDR4-3600:</p><pre class="text"><code>16-19-19-38 ou mais solto</code></pre><p>Prioridades:</p><ul>
+<li>frequência;</li>
+<li>tCL;</li>
+<li>tRCD realista;</li>
+<li>não perseguir tRFC de B-die.</li>
+</ul></section><section class="chapter" data-search="23. mitos e erros comuns" data-title="23. Mitos e erros comuns"><span class="chapter-kicker">Seção 27</span><h1 id="mitos-e-erros-comuns">23. Mitos e erros comuns<a aria-label="Copiar link desta seção" class="heading-anchor" href="#mitos-e-erros-comuns" title="Link direto">#</a></h1><h2 id="menor-cl-sempre-é-melhor">“Menor CL sempre é melhor”</h2><p>Falso. Compare tempo em ns, bandwidth, controlador e sincronismo.</p><h2 id="v-é-seguro-porque-é-o-máximo-absoluto">“1,50 V é seguro porque é
+o máximo absoluto”</h2><p>Falso. Máximo absoluto não é condição operacional recomendada.</p><h2 id="acima-de-60-c-toda-ddr4-estraga">“Acima de 60 °C toda DDR4
+estraga”</h2><p>Falso. A estabilidade do perfil pode acabar antes, mas o limite
+físico depende do componente.</p><h2 id="tras-sempre-é-cl-trcd-2">“tRAS sempre é CL + tRCD + 2”</h2><p>Falso como regra universal.</p><h2 id="tcwl-precisa-ser-par-porque-a-frequência-é-par">“tCWL precisa
+ser par porque a frequência é par”</h2><p>Falso. A restrição depende de plataforma e modo de operação.</p><h2 id="fclk-é-metade-do-mclk">“FCLK é metade do MCLK”</h2><p>Falso quando MCLK significa clock físico. Em DDR4-3600 sincronizado,
+MCLK e FCLK são 1800 MHz.</p><h2 id="quatro-dimms-são-sempre-piores">“Quatro DIMMs são sempre
+piores”</h2><p>Falso. Podem entregar mais ranks e desempenho, mas aumentam carga e
+dependem da topologia.</p><h2 id="passou-30-minutos-está-estável">“Passou 30 minutos, está
+estável”</h2><p>Falso. É apenas uma triagem.</p><h2 id="mais-tensão-sempre-resolve">“Mais tensão sempre resolve”</h2><p>Falso. DRAM e IMC podem apresentar scaling negativo.</p><h2 id="thaiphoon-confirmou-então-é-certeza">“Thaiphoon confirmou, então
+é certeza”</h2><p>Falso. SPD pode ser genérico ou programado incorretamente.</p></section><section class="chapter" data-search="24. ficha de registro" data-title="24. Ficha de registro"><span class="chapter-kicker">Seção 28</span><h1 id="ficha-de-registro">24. Ficha de registro<a aria-label="Copiar link desta seção" class="heading-anchor" href="#ficha-de-registro" title="Link direto">#</a></h1><p>Copie esta tabela para cada perfil.</p><div aria-label="Tabela com rolagem horizontal" class="table-scroll" role="region"><table>
+<thead>
+<tr class="header">
+<th>Campo</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>CPU</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>Placa-mãe e BIOS</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>DIMMs/part number</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>Slots</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>IC e nível de confiança</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>Ranks por DIMM</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>Taxa DDR</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>MCLK/UCLK/FCLK ou Gear</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>DRAM Voltage solicitado/medido</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>VCCSA/VCCIO ou VSOC/VDDG/VDDP</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>Primários</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>Secundários</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>Terciários</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>CR/GDM</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>Temperatura ambiente</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>Temperatura DIMM</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>Teste rápido</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>Teste intermediário</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>Validação final</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>Benchmark médio</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>WHEA</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>Boots frios</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>Observações</td>
+<td></td>
+</tr>
+</tbody>
+</table></div><h2 id="log-de-alterações">Log de alterações</h2><div aria-label="Tabela com rolagem horizontal" class="table-scroll" role="region"><table>
+<thead>
+<tr class="header">
+<th style="text-align: right;">Nº</th>
+<th>Alteração</th>
+<th>Resultado</th>
+<th>Estável?</th>
+<th>Desempenho</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">1</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">2</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">3</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table></div></section><section class="chapter" data-search="25. checklist final" data-title="25. Checklist final"><span class="chapter-kicker">Seção 29</span><h1 id="checklist-final">25. Checklist final<a aria-label="Copiar link desta seção" class="heading-anchor" href="#checklist-final" title="Link direto">#</a></h1><ul class="task-list">
+<li><label><input type="checkbox"/>Backup realizado.</label></li>
+<li><label><input type="checkbox"/>Stock testado e
+estável.</label></li>
+<li><label><input type="checkbox"/>Slots corretos segundo o
+manual.</label></li>
+<li><label><input type="checkbox"/>CPU/cache estáveis sem depender do
+OC de RAM.</label></li>
+<li><label><input type="checkbox"/>IC identificado com nível de
+confiança declarado.</label></li>
+<li><label><input type="checkbox"/>Frequência escolhida com margem
+abaixo do teto de POST.</label></li>
+<li><label><input type="checkbox"/>MCLK/UCLK/FCLK ou Gear configurados
+corretamente.</label></li>
+<li><label><input type="checkbox"/>Tensões medidas e
+registradas.</label></li>
+<li><label><input type="checkbox"/>Nenhuma tensão tratada como
+universalmente segura.</label></li>
+<li><label><input type="checkbox"/>Primários ajustados e
+testados.</label></li>
+<li><label><input type="checkbox"/>tRFC testado com a memória
+aquecida.</label></li>
+<li><label><input type="checkbox"/>Secundários e terciários alterados
+em grupos pequenos.</label></li>
+<li><label><input type="checkbox"/>Zero erros em testes
+complementares.</label></li>
+<li><label><input type="checkbox"/>Zero WHEA.</label></li>
+<li><label><input type="checkbox"/>Cinco boots frios e
+quentes.</label></li>
+<li><label><input type="checkbox"/>Suspensão e retomada
+testadas.</label></li>
+<li><label><input type="checkbox"/>Benchmark repetido 3–5
+vezes.</label></li>
+<li><label><input type="checkbox"/>Ganho maior que a variância
+natural.</label></li>
+<li><label><input type="checkbox"/>Perfil stock e perfil diário salvos
+no BIOS.</label></li>
+</ul></section><section class="chapter" data-search="26. fontes e nível de
+evidência" data-title="26. Fontes e nível de
+evidência"><span class="chapter-kicker">Seção 30</span><h1 id="fontes-e-nível-de-evidência">26. Fontes e nível de
+evidência<a aria-label="Copiar link desta seção" class="heading-anchor" href="#fontes-e-nível-de-evidência" title="Link direto">#</a></h1><h2 id="fonte-comunitária-principal">Fonte comunitária principal</h2><ul>
+<li>integralfx/MemTestHelper — DDR4 OC Guide:<br/><span>
+<a href="https://github.com/integralfx/MemTestHelper/blob/oc-guide/DDR4%20OC%20Guide.md" rel="noopener noreferrer" target="_blank">https://github.com/integralfx/MemTestHelper/blob/oc-guide/DDR4%20OC%20Guide.md</a></span></li>
+</ul><p>O guia original é uma das melhores compilações práticas sobre DDR4,
+porém contém observações comunitárias, valores dependentes de plataforma
+e trechos antigos. Nesta revisão, esses pontos foram marcados como
+tendências ou pontos de partida, não como garantias.</p><h2 id="fontes-oficiais">Fontes oficiais</h2><ul>
+<li><p>AMD Ryzen Master User Guide — avisos, clock de memória, Fabric
+Clock e UCLK:<br/><span>
+<a href="https://docs.amd.com/r/en-US/68886-ryzen-master-user-guide" rel="noopener noreferrer" target="_blank">https://docs.amd.com/r/en-US/68886-ryzen-master-user-guide</a></span></p></li>
+<li><p>Intel — How to Overclock RAM:<br/><span>
+<a href="https://www.intel.com/content/www/us/en/gaming/resources/overclock-ram.html" rel="noopener noreferrer" target="_blank">https://www.intel.com/content/www/us/en/gaming/resources/overclock-ram.html</a></span></p></li>
+<li><p>Micron — catálogo e documentação DDR4:<br/><span>
+<a href="https://www.micron.com/products/memory/dram-components/ddr4-sdram" rel="noopener noreferrer" target="_blank">https://www.micron.com/products/memory/dram-components/ddr4-sdram</a></span></p></li>
+<li><p>MemTest86+ — documentação e filosofia de testes:<br/><span>
+<a href="https://memtest.org/readme" rel="noopener noreferrer" target="_blank">https://memtest.org/readme</a></span></p></li>
+<li><p>OCCT — configuração do teste de memória:<br/><span>
+<a href="https://www.ocbase.com/support/stability-testing-configuration-memory" rel="noopener noreferrer" target="_blank">https://www.ocbase.com/support/stability-testing-configuration-memory</a></span></p></li>
+<li><p>y-cruncher — stress test VT3/VST:<br/><span>
+<a href="https://www.numberworld.org/y-cruncher/" rel="noopener noreferrer" target="_blank">https://www.numberworld.org/y-cruncher/</a></span></p></li>
+</ul><h2 id="hierarquia-usada-neste-documento">Hierarquia usada neste
+documento</h2><ol type="1">
+<li>datasheet e documentação oficial do fabricante;</li>
+<li>documentação da plataforma/CPU;</li>
+<li>comportamento reproduzido por várias fontes técnicas;</li>
+<li>guia comunitário de referência;</li>
+<li>relato individual, usado apenas como hipótese.</li>
+</ol><p>Quando uma informação varia por silício, placa ou firmware, ela foi
+descrita como <strong>tendência</strong>, <strong>ponto inicial</strong>
+ou <strong>faixa de exploração</strong>.</p></section><section class="chapter" data-search="conclusão" data-title="Conclusão"><span class="chapter-kicker">Seção 31</span><h1 id="conclusão">Conclusão<a aria-label="Copiar link desta seção" class="heading-anchor" href="#conclusão" title="Link direto">#</a></h1><p>Overclock de DDR4 não é decorar uma tabela. É controlar variáveis,
+medir o comportamento do seu sistema e manter margem.</p><p>A sequência correta é:</p><pre class="text"><code>entender → registrar → alterar → testar → medir → validar → manter margem</code></pre><p>O melhor perfil não é o que apresenta o menor número no BIOS. É o que
+entrega desempenho real, inicializa de forma consistente e permanece sem
+erros na pior condição de uso.</p></section></article>
+  <footer class="footer">DDR4 OC Lab · Versão web autocontida · Conteúdo técnico revisado em julho de 2026</footer>
+</main>
+</div>
+<div id="diagram-modal" class="diagram-modal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="diagram-modal-title"><div class="diagram-dialog"><div class="diagram-modal-head"><div id="diagram-modal-title" class="diagram-modal-title">Diagrama técnico</div><button id="diagram-close" class="diagram-close" aria-label="Fechar diagrama">✕</button></div><div id="diagram-canvas" class="diagram-canvas"></div></div></div>
+<button id="back-top" aria-label="Voltar ao topo">↑</button>
+<script>
+(() => {
+  const root = document.documentElement;
+  const body = document.body;
+  const progress = document.getElementById('reading-progress');
+  const backTop = document.getElementById('back-top');
+  const themeBtn = document.getElementById('theme-toggle');
+  const menuBtn = document.getElementById('menu-toggle');
+  const overlay = document.querySelector('.mobile-overlay');
+  const search = document.getElementById('guide-search');
+  const searchStatus = document.getElementById('search-status');
+  const chapters = [...document.querySelectorAll('.chapter')];
+  const tocLinks = [...document.querySelectorAll('.toc-tree a[href^="#"]')];
+  const currentLabel = document.getElementById('current-section');
+
+  let savedTheme = null;
+  try { savedTheme = localStorage.getItem('ddr4-theme'); } catch (_) {}
+  if (savedTheme) root.dataset.theme = savedTheme;
+  const updateThemeIcon = () => themeBtn.textContent = root.dataset.theme === 'dark' ? '☀' : '☾';
+  updateThemeIcon();
+  themeBtn.addEventListener('click', () => {
+    root.dataset.theme = root.dataset.theme === 'dark' ? 'light' : 'dark';
+    try { localStorage.setItem('ddr4-theme', root.dataset.theme); } catch (_) {}
+    updateThemeIcon();
+  });
+
+  const closeMenu = () => body.classList.remove('menu-open');
+  menuBtn.addEventListener('click', () => body.classList.toggle('menu-open'));
+  overlay.addEventListener('click', closeMenu);
+  tocLinks.forEach(a => a.addEventListener('click', closeMenu));
+
+  const onScroll = () => {
+    const doc = document.documentElement;
+    const total = doc.scrollHeight - doc.clientHeight;
+    progress.style.width = (total > 0 ? (doc.scrollTop / total) * 100 : 0) + '%';
+    backTop.classList.toggle('visible', doc.scrollTop > 700);
+  };
+  addEventListener('scroll', onScroll, {passive:true});
+  onScroll();
+  backTop.addEventListener('click', () => scrollTo({top:0,behavior:'smooth'}));
+
+  const observer = new IntersectionObserver(entries => {
+    const visible = entries.filter(e => e.isIntersecting).sort((a,b) => b.intersectionRatio-a.intersectionRatio)[0];
+    if (!visible) return;
+    const heading = visible.target.querySelector('h1[id]');
+    if (!heading) return;
+    tocLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + heading.id));
+    currentLabel.textContent = heading.textContent.replace('#','').trim();
+  }, {rootMargin:'-18% 0px -68% 0px', threshold:[0,.1,.3]});
+  chapters.forEach(c => observer.observe(c));
+
+  const normalize = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+  let timer;
+  search.addEventListener('input', () => {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      const q = normalize(search.value.trim());
+      let count = 0;
+      chapters.forEach(c => {
+        const hit = !q || normalize(c.textContent).includes(q);
+        c.classList.toggle('search-hidden', !hit);
+        if (hit) count++;
+      });
+      tocLinks.forEach(a => {
+        const li = a.closest('li');
+        if (!li) return;
+        li.style.display = !q || normalize(a.textContent).includes(q) ? '' : 'none';
+      });
+      searchStatus.textContent = q ? `${count} seção(ões) encontrada(s)` : 'Pesquise por timing, IC ou plataforma';
+    }, 100);
+  });
+
+  const mt = document.getElementById('calc-mt');
+  const cl = document.getElementById('calc-cl');
+  const channels = document.getElementById('calc-channels');
+  const updateCalc = () => {
+    const rate = Math.max(1, Number(mt.value) || 0);
+    const timing = Math.max(1, Number(cl.value) || 0);
+    const ch = Math.max(1, Number(channels.value) || 1);
+    document.getElementById('calc-ns').textContent = ((2000 * timing) / rate).toFixed(2) + ' ns';
+    document.getElementById('calc-tck').textContent = (2000 / rate).toFixed(3) + ' ns';
+    document.getElementById('calc-bw').textContent = ((rate * 8 * ch) / 1000).toFixed(1) + ' GB/s';
+    document.getElementById('calc-clock').textContent = (rate / 2).toFixed(0) + ' MHz';
+  };
+  [mt,cl,channels].forEach(el => el.addEventListener('input', updateCalc));
+  updateCalc();
+
+  const modal = document.getElementById('diagram-modal');
+  const modalCanvas = document.getElementById('diagram-canvas');
+  const modalTitle = document.getElementById('diagram-modal-title');
+  const closeDiagram = () => { modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); modalCanvas.innerHTML=''; body.style.overflow=''; };
+  document.querySelectorAll('figure.diagram').forEach(fig => fig.addEventListener('click', () => {
+    const svg = fig.querySelector('svg'); if (!svg) return;
+    const caption = fig.querySelector('figcaption');
+    modalTitle.textContent = caption ? caption.textContent.trim() : 'Diagrama técnico';
+    modalCanvas.appendChild(svg.cloneNode(true));
+    modal.classList.add('open'); modal.setAttribute('aria-hidden','false'); body.style.overflow='hidden';
+  }));
+  document.getElementById('diagram-close').addEventListener('click', closeDiagram);
+  modal.addEventListener('click', e => { if (e.target === modal) closeDiagram(); });
+  addEventListener('keydown', e => { if (e.key === 'Escape' && modal.classList.contains('open')) closeDiagram(); });
+
+  document.getElementById('print-btn').addEventListener('click', () => print());
+  document.querySelectorAll('.heading-anchor').forEach(a => a.addEventListener('click', async e => {
+    e.preventDefault();
+    const url = location.href.split('#')[0] + a.getAttribute('href');
+    history.pushState(null,'',a.getAttribute('href'));
+    try { await navigator.clipboard.writeText(url); a.textContent='✓'; setTimeout(()=>a.textContent='#',900); } catch(_) {}
+  }));
+})();
+</script>
+</body>
+</html>
